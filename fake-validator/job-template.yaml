@@ -1,0 +1,103 @@
+# Kubernetes Job template for GCP validator testing
+#
+# Placeholders to replace before applying:
+# - <scenario>: The test scenario (e.g., success, failure, hang, crash, invalid-json, missing-status)
+# - <namespace>: The Kubernetes namespace
+# - <fake-validator-image>: The fake-validator container image
+#   Example: quay.io/rh-ee-dawang/fake-gcp-validator:dev-3253941
+# - <status-reporter-image>: The status-reporter container image
+#   Example: quay.io/rh-ee-dawang/status-reporter:dev-04e8d0a
+#
+# Usage:
+#   sed -e 's|<scenario>|success|g' \
+#       -e 's|<namespace>|default|g' \
+#       -e 's|<fake-validator-image>|quay.io/rh-ee-dawang/fake-gcp-validator:dev-3253941|g' \
+#       -e 's|<status-reporter-image>|quay.io/rh-ee-dawang/status-reporter:dev-04e8d0a|g' \
+#       job-template.yaml | kubectl apply -f -
+#
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fake-validator-<scenario>
+  namespace: <namespace>
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 310  # 300 + 10 second buffer
+  template:
+    metadata:
+      labels:
+        app: gcp-validator
+        job-name: fake-validator-<scenario>
+    spec:
+      serviceAccountName: gcp-validator
+      restartPolicy: Never
+
+      # Shared volume for results
+      volumes:
+      - name: results
+        emptyDir: {}
+
+      containers:
+      # Adapter container (fake-validator)
+      - name: fake-validator
+        image: <fake-validator-image>
+        imagePullPolicy: Always
+        env:
+        # Configure simulation scenario
+        # Valid values: success, failure, hang, crash, invalid-json, missing-status
+        - name: SIMULATE_RESULT
+          value: "<scenario>"
+        - name: RESULTS_PATH
+          value: "/results/adapter-result.json"
+        volumeMounts:
+        - name: results
+          mountPath: /results
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+
+      # Status reporter sidecar
+      - name: status-reporter
+        image: <status-reporter-image>
+        imagePullPolicy: Always
+        env:
+        # Required environment variables
+        - name: JOB_NAME
+          value: "fake-validator-<scenario>"
+        - name: JOB_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+
+        # Optional configuration
+        - name: RESULTS_PATH
+          value: "/results/adapter-result.json"
+        - name: POLL_INTERVAL_SECONDS
+          value: "2"
+        - name: MAX_WAIT_TIME_SECONDS
+          value: "300"
+        - name: CONDITION_TYPE
+          value: "Available"
+        - name: LOG_LEVEL
+          value: "info"
+        - name: ADAPTER_CONTAINER_NAME
+          value: "fake-validator"
+
+        volumeMounts:
+        - name: results
+          mountPath: /results
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
