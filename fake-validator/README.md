@@ -1,6 +1,6 @@
 # Fake GCP Validator
 
-A simulated GCP validator for testing the adapter validation framework without making actual GCP API calls. This tool is designed for local development, testing, and CI/CD pipelines.
+A simulated GCP validator for testing the adapter framework without making actual GCP API calls. This tool is designed for local development, testing, and CI/CD pipelines.
 
 ## Overview
 
