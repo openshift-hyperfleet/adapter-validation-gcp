@@ -13,6 +13,7 @@ metadata:
     hyperfleet.io/created-by: "hyperfleet-adapter"
 spec:
   backoffLimit: 0
+  # [TODO] This will be passed via parameter once adapter configuration support int parameter.
   activeDeadlineSeconds: 310 # maxWaitTimeSeconds + 10 second buffers, maximum time to wait for k8s job completion"
   template:
     metadata:
@@ -20,6 +21,7 @@ spec:
         app: gcp-validator
         hyperfleet.io/cluster-id: "{{ .clusterId }}"
     spec:
+      # Created before the job is created, as specified in the adapter configuration.
       serviceAccountName: gcp-validator
       restartPolicy: Never
       volumes:

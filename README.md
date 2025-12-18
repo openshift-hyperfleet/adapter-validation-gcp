@@ -10,8 +10,6 @@ Event-driven adapter for HyperFleet GCP cluster validation. Validates GCP cluste
 - [Helm Chart Installation](#helm-chart-installation)
 - [Configuration](#configuration)
 - [Examples](#examples)
-- [GCP Workload Identity Setup](#gcp-workload-identity-setup)
-- [Notes](#notes)
 
 ## Prerequisites
 

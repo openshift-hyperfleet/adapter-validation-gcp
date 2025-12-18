@@ -2,8 +2,6 @@
 #
 # This adapter creates a validation job for GCP clusters to verify
 # cluster readiness and configuration.
-#
-# Job template reference: job-template.yaml
 apiVersion: hyperfleet.redhat.com/v1alpha1
 kind: AdapterConfig
 metadata:

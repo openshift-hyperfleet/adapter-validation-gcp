@@ -28,7 +28,7 @@ serviceAccount:
   name: ""
 
 rbac:
-  create: false
+  create: true
   # When enabled, grants minimal permissions needed for validation:
   # - Read namespaces
   # - Manage ServiceAccounts, Roles, RoleBindings, Jobs
@@ -49,7 +49,7 @@ affinity: {}
 # Broker configuration
 # Set type to enable broker (required for adapter to function)
 broker:
-  type: ""  # "googlepubsub" or "rabbitmq"
+  type: "googlepubsub"  # "googlepubsub" or "rabbitmq"
 
   # Google Pub/Sub (required when type: googlepubsub)
   googlepubsub:
