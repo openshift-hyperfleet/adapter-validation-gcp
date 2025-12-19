@@ -75,7 +75,7 @@ spec:
       default: "dummy-validation-adapter"
       description: "The value for hyperfleet.io/managed-by"
     - name: "createdByResourceName"
-      source: "env.CREATED_By_RESOURCE_NAME"
+      source: "env.CREATED_BY_RESOURCE_NAME"
       type: "string"
       default: "hyperfleet-adapter"
       description: "The value for hyperfleet.io/created-by:"
