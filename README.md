@@ -25,7 +25,7 @@ This adapter supports two deployment modes via the `deploymentMode` parameter:
 ### Dummy Mode (Current)
 - **Value**: `deploymentMode: "dummy"`
 - **Description**: Simulates GCP validation for testing and development
-- **Config File**: Uses `charts/configs/adapter-dummy-validation-gcp.yaml`
+- **Config File**: Uses `charts/configs/validation-gcp-dummy-adapter.yaml`
 - **Features**:
   - Configurable simulation results (success, failure, hang, crash, etc.)
   - No actual GCP API calls
@@ -34,7 +34,7 @@ This adapter supports two deployment modes via the `deploymentMode` parameter:
 ### Real Mode (Future)
 - **Value**: `deploymentMode: "real"`
 - **Description**: Performs actual GCP validation checks
-- **Config File**: Will use `charts/configs/adapter-validation-gcp.yaml` (to be created)
+- **Config File**: Will use `charts/configs/validation-gcp-adapter.yaml` (to be created)
 - **Features**:
   - Real GCP API validation
   - Production-ready validation checks
@@ -75,7 +75,7 @@ SUBSCRIBER_PARALLELISM="1"
 HYPERFLEET_API_VERSION="v1"
 
 # Validation-specific settings
-STATUS_REPORTER_IMAGE="quay.io/rh-ee-dawang/status-reporter:dev-04e8d0a"
+STATUS_REPORTER_IMAGE="<The image built by https://github.com/openshift-hyperfleet/status-reporter>"
 SIMULATE_RESULT="success"  # success, failure, hang, crash, invalid-json, missing-status
 RESULTS_PATH="/results/adapter-result.json"
 MAX_WAIT_TIME_SECONDS="300"
@@ -138,7 +138,7 @@ helm install validation-gcp ./charts/ \
   --set broker.googlepubsub.topic=my-topic \
   --set broker.googlepubsub.subscription=my-subscription
 
-# Real mode (when available in future)
+# Real mode (not yet available; keep commented until implemented — see HYPERFLEET-267)
 # helm install validation-gcp ./charts/ \
 #   --set deploymentMode=real \
 #   --set broker.type=googlepubsub \
@@ -260,7 +260,7 @@ When `rbac.create=true`, the adapter gets **minimal permissions** needed for val
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `validation.statusReporterImage` | Status reporter sidecar image | `quay.io/rh-ee-dawang/status-reporter:dev-04e8d0a` |
+| `validation.statusReporterImage` | Status reporter sidecar image | `<The image built by https://github.com/openshift-hyperfleet/status-reporter>` |
 
 #### Dummy Validation Mode Settings
 
@@ -407,7 +407,7 @@ broker:
     parallelism: 1
 
 validation:
-  statusReporterImage: quay.io/rh-ee-dawang/status-reporter:dev-04e8d0a
+  statusReporterImage: <The image built by https://github.com/openshift-hyperfleet/status-reporter>
   dummy:
     simulateResult: success
     resultsPath: /results/adapter-result.json

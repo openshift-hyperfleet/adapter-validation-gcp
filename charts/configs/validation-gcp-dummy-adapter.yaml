@@ -64,6 +64,21 @@ spec:
       type: "string"
       default: "300"
       description: "Maximum time to wait for validation completion"
+    - name: "gcpValidatorServiceAccount"
+      source: "env.GCP_VALIDATOR_SERVICE_ACCOUNT"
+      type: "string"
+      default: "gcp-validator-job-sa"
+      description: "Maximum time to wait for validation completion"
+    - name: "managedByResourceName"
+      source: "env.MANAGED_By_RESOURCE_NAME"
+      type: "string"
+      default: "dummy-gcp-validation-adapter"
+      description: "The value for hyperfleet.io/managed-by"
+    - name: "createdByResourceName"
+      source: "env.CREATED_By_RESOURCE_NAME"
+      type: "string"
+      default: "hyperfleet-adapter"
+      description: "The value for hyperfleet.io/created-by:"
   # ============================================================================
   # Preconditions
   # ============================================================================
@@ -115,20 +130,21 @@ spec:
         apiVersion: v1
         kind: ServiceAccount
         metadata:
-          name: gcp-validator
+          name: "{{ .gcpValidatorServiceAccount }}"
           namespace: "{{ .clusterId | lower }}"
           labels:
             hyperfleet.io/cluster-id: "{{ .clusterId }}"
-            hyperfleet.io/managed-by: "dummy-gcp-validation-adapter"
+            hyperfleet.io/managed-by: "{{ .managedByResourceName }}"
             hyperfleet.io/resource-type: "service-account"
           annotations:
-            hyperfleet.io/created-by: "hyperfleet-adapter"
+            hyperfleet.io/created-by: "{{ .createdByResourceName }}"
+            hyperfleet.io/generation: "{{ .generationId }}"
       discovery:
         bySelectors:
           labelSelector:
             hyperfleet.io/resource-type: "service-account"
             hyperfleet.io/cluster-id: "{{ .clusterId }}"
-            hyperfleet.io/managed-by: "dummy-gcp-validation-adapter"
+            hyperfleet.io/managed-by: "{{ .managedByResourceName }}"
     # ==========================================================================
     # Resource: Role with necessary permissions for status reporter
     # ==========================================================================
@@ -142,10 +158,11 @@ spec:
           namespace: "{{ .clusterId | lower }}"
           labels:
             hyperfleet.io/cluster-id: "{{ .clusterId }}"
-            hyperfleet.io/managed-by: "dummy-gcp-validation-adapter"
+            hyperfleet.io/managed-by: "{{ .managedByResourceName }}"
             hyperfleet.io/resource-type: "role"
           annotations:
-            hyperfleet.io/created-by: "hyperfleet-adapter"
+            hyperfleet.io/created-by: "{{ .createdByResourceName }}"
+            hyperfleet.io/generation: "{{ .generationId }}"
         rules:
           # Permission to get and update job status
           - apiGroups: [ "batch" ]
@@ -163,7 +180,7 @@ spec:
           labelSelector:
             hyperfleet.io/resource-type: "role"
             hyperfleet.io/cluster-id: "{{ .clusterId }}"
-            hyperfleet.io/managed-by: "dummy-gcp-validation-adapter"
+            hyperfleet.io/managed-by: "{{ .managedByResourceName }}"
     # ==========================================================================
     # Rolebinding to grant permissions to the service account
     # ==========================================================================
@@ -177,17 +194,18 @@ spec:
           namespace: "{{ .clusterId | lower }}"
           labels:
             hyperfleet.io/cluster-id: "{{ .clusterId }}"
-            hyperfleet.io/managed-by: "dummy-gcp-validation-adapter"
+            hyperfleet.io/managed-by: "{{ .managedByResourceName }}"
             hyperfleet.io/resource-type: "role-binding"
           annotations:
-            hyperfleet.io/created-by: "hyperfleet-adapter"
+            hyperfleet.io/created-by: "{{ .createdByResourceName }}"
+            hyperfleet.io/generation: "{{ .generationId }}"
         roleRef:
           apiGroup: rbac.authorization.k8s.io
           kind: Role
           name: status-reporter
         subjects:
           - kind: ServiceAccount
-            name: gcp-validator
+            name: "{{ .gcpValidatorServiceAccount }}"
             namespace: "{{ .clusterId | lower }}"
       discovery:
         bySelectors:
@@ -200,13 +218,13 @@ spec:
     # ==========================================================================
     - name: "gcpValidationJob"
       manifest:
-        ref: "./dummy-validation-gcp-job.yaml"
+        ref: "./validation-gcp-dummy-job-adapter-task.yaml"
       discovery:
         bySelectors:
           labelSelector:
             hyperfleet.io/resource-type: "validation-job"
             hyperfleet.io/cluster-id: "{{ .clusterId }}"
-            hyperfleet.io/managed-by: "dummy-gcp-validation-adapter"
+            hyperfleet.io/managed-by: "{{ .managedByResourceName }}"
   # ============================================================================
   # Post-Processing
   # ============================================================================

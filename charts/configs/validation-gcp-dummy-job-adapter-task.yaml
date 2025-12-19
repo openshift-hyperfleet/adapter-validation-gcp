@@ -5,12 +5,12 @@ metadata:
   namespace: "{{ .clusterId | lower }}"
   labels:
     hyperfleet.io/cluster-id: "{{ .clusterId }}"
-    hyperfleet.io/managed-by: "dummy-gcp-validation-adapter"
+    hyperfleet.io/managed-by: "{{ .managedByResourceName }}"
     hyperfleet.io/resource-type: "validation-job"
-    hyperfleet.io/generation: "{{ .generationId }}"
     app: gcp-validator
   annotations:
-    hyperfleet.io/created-by: "hyperfleet-adapter"
+    hyperfleet.io/created-by: "{{ .createdByResourceName }}"
+    hyperfleet.io/generation: "{{ .generationId }}"
 spec:
   backoffLimit: 0
   # [TODO] This will be passed via parameter once adapter configuration support int parameter.
@@ -22,7 +22,7 @@ spec:
         hyperfleet.io/cluster-id: "{{ .clusterId }}"
     spec:
       # Created before the job is created, as specified in the adapter configuration.
-      serviceAccountName: gcp-validator
+      serviceAccountName: "{{ .gcpValidatorServiceAccount }}"
       restartPolicy: Never
       volumes:
         - name: results

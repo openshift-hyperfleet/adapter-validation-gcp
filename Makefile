@@ -9,7 +9,7 @@
 .PHONY: help helm-lint helm-template helm-template-broker helm-template-rabbitmq helm-test helm-dry-run helm-package \
         helm-template-full helm-template-dummy helm-template-real test-helm \
         helm-install helm-upgrade helm-uninstall helm-status \
-        run-local validate-adapter-yaml validate-broker-pubsub validate-broker-rabbitmq validate-dummy-job validate
+        run-local validate-adapter-yaml validate-broker-pubsub validate-broker-rabbitmq validate-dummy-task validate
 
 # Default values
 RELEASE_NAME ?= validation-gcp
@@ -65,7 +65,7 @@ helm-template-dummy: ## Render helm templates with dummy validation mode
 		--set validation.dummy.simulateResult=success \
 		--set rbac.create=true
 
-# Real mode (when available in future)
+# Real mode (not yet available; keep commented until implemented — see HYPERFLEET-267)
 #helm-template-real: ## Render helm templates with real validation mode (future)
 #	@echo "$(GREEN)Rendering helm templates (real validation mode)...$(NC)"
 #	helm template $(RELEASE_NAME) $(CHART_DIR) \
@@ -129,12 +129,12 @@ run-local: ## Run adapter locally (auto-sources .env if exists)
 
 ##@ Validation
 
-validate-adapter-yaml: ## Validate charts/configs/adapter-dummy-validation-gcp.yaml syntax
-	@echo "$(GREEN)Validating charts/configs/adapter-dummy-validation-gcp.yaml...$(NC)"
-	@yq '.' charts/configs/adapter-dummy-validation-gcp.yaml >/dev/null && echo "adapter-dummy-validation-gcp.yaml is valid YAML"
+validate-adapter-yaml: ## Validate charts/configs/validation-gcp-dummy-adapter.yaml syntax
+	@echo "$(GREEN)Validating charts/configs/validation-gcp-dummy-adapter.yaml...$(NC)"
+	@yq '.' charts/configs/validation-gcp-dummy-adapter.yaml >/dev/null && echo "validation-gcp-dummy-adapter.yaml is valid YAML"
 
-validate-dummy-job: ## Validate charts/configs/dummy-validation-gcp-job.yaml syntax
-	@echo "$(GREEN)Validating charts/configs/dummy-validation-gcp-job.yaml...$(NC)"
-	@yq '.' charts/configs/dummy-validation-gcp-job.yaml >/dev/null && echo "dummy-validation-gcp-job.yaml is valid YAML"
+validate-dummy-task: ## Validate charts/configs/validation-gcp-dummy-job-adapter-task.yaml syntax
+	@echo "$(GREEN)Validating charts/configs/validation-gcp-dummy-job-adapter-task.yaml...$(NC)"
+	@yq '.' charts/configs/validation-gcp-dummy-job-adapter-task.yaml >/dev/null && echo "validation-gcp-dummy-job-adapter-task.yaml is valid YAML"
 
-validate: validate-adapter-yaml validate-dummy-job ## Validate all YAML files
+validate: validate-adapter-yaml validate-dummy-task ## Validate all YAML files
