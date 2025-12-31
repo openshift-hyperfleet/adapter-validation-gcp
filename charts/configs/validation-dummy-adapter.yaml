@@ -102,21 +102,21 @@ spec:
         - field: "clusterPhase"
           operator: "in"
           values: ["NotReady", "Ready"]
-#    # [TODO] Disabled temporarily until the data can be captured correctly.
-#    - name: "clusterAdapterStatus"
-#      apiCall:
-#        method: "GET"
-#        url: "{{ .hyperfleetApiBaseUrl }}/api/hyperfleet/{{ .hyperfleetApiVersion }}/clusters/{{ .clusterId }}/statuses"
-#        timeout: 10s
-#        retryAttempts: 3
-#        retryBackoff: "exponential"
-#      capture:
-#        - name: "clusterNamespaceStatus"
-#          field: "items.filter(c, c.type == \"landing-zone-adapter\")[0]?.data?.namespace?.status"
-#      conditions:
-#        - field: "clusterNamespaceStatus"
-#          operator: "equals"
-#          values: "Active"
+
+    - name: "clusterAdapterStatus"
+      apiCall:
+        method: "GET"
+        url: "{{ .hyperfleetApiBaseUrl }}/api/hyperfleet/{{ .hyperfleetApiVersion }}/clusters/{{ .clusterId }}/statuses"
+        timeout: 10s
+        retryAttempts: 3
+        retryBackoff: "exponential"
+      capture:
+        - name: "clusterNamespaceStatus"
+          field: "{.items[?(@.adapter=='landing-zone-adapter')].data.namespace.status}"
+      conditions:
+        - field: "clusterNamespaceStatus"
+          operator: "equals"
+          values: "Active"
   # ============================================================================
   # Resources
   # ============================================================================
@@ -282,9 +282,7 @@ spec:
           # Event generation ID metadata field needs to use expression to avoid interpolation issues
           observed_generation:
             expression: "generationId"
-          observed_time:
-            value: "{{ now | date \"2006-01-02T15:04:05Z07:00\" }}"
-            description: "Timestamp when status was reported"
+          observed_time: "{{ now | date \"2006-01-02T15:04:05Z07:00\" }}"
     # ============================================================================
     # Post Actions
     # ============================================================================
