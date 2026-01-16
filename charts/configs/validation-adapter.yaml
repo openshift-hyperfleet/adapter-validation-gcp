@@ -5,7 +5,7 @@
 apiVersion: hyperfleet.redhat.com/v1alpha1
 kind: AdapterConfig
 metadata:
-  name: dummy-validation-adapter
+  name: validation-adapter
   namespace: hyperfleet-system
   labels:
     hyperfleet.io/adapter-type: validation
@@ -49,11 +49,22 @@ spec:
       type: "string"
       default: "registry.ci.openshift.org/ci/status-reporter:latest"
       description: "Container image for the status reporter"
-    - name: "simulateResult"
-      source: "env.SIMULATE_RESULT"
+    # GCP Validator configuration
+    - name: "gcpValidatorImage"
+      source: "env.GCP_VALIDATOR_IMAGE"
       type: "string"
-      default: "success"
-      description: "Simulated validation result (success, failure, hang, crash, invalid-json, missing-status)"
+      default: "registry.ci.openshift.org/ci/gcp-validator:latest"
+      description: "GCP validator container image"
+    - name: "disabledValidators"
+      source: "env.DISABLED_VALIDATORS"
+      type: "string"
+      default: "quota-check"
+      description: "Comma-separated list of validators to disable"
+    - name: "requiredApis"
+      source: "env.REQUIRED_APIS"
+      type: "string"
+      default: "compute.googleapis.com,iam.googleapis.com,cloudresourcemanager.googleapis.com"
+      description: "Comma-separated list of required GCP APIs to validate"
     - name: "resultPath"
       source: "env.RESULTS_PATH"
       type: "string"
@@ -72,7 +83,7 @@ spec:
     - name: "managedByResourceName"
       source: "env.MANAGED_BY_RESOURCE_NAME"
       type: "string"
-      default: "dummy-validation-adapter"
+      default: "validation-adapter"
       description: "The value for hyperfleet.io/managed-by"
     - name: "createdByResourceName"
       source: "env.CREATED_BY_RESOURCE_NAME"
@@ -98,10 +109,16 @@ spec:
           field: "status.phase"
         - name: "generationId"
           field: "generation"
+        # Customer GCP project ID
+        - name: "projectId"
+          field: "spec.platform.gcp.projectID"
       conditions:
         - field: "clusterPhase"
           operator: "in"
           values: ["NotReady", "Ready"]
+        # Ensure Customer GCP project ID is configured
+        - field: "projectId"
+          operator: "exists"
 
     - name: "clusterAdapterStatus"
       apiCall:
@@ -218,7 +235,7 @@ spec:
     # ==========================================================================
     - name: "gcpValidationJob"
       manifest:
-        ref: "./validation-dummy-job-adapter-task.yaml"
+        ref: "./validation-job-adapter-task.yaml"
       discovery:
         bySelectors:
           labelSelector:
@@ -298,4 +315,3 @@ spec:
           headers:
             - name: "Content-Type"
               value: "application/json"
-

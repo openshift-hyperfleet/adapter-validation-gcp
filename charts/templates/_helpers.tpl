@@ -82,7 +82,7 @@ Get the adapter config file name based on deployment mode
 {{- if eq .Values.deploymentMode "dummy" }}
 {{- "validation-dummy-adapter.yaml" }}
 {{- else if eq .Values.deploymentMode "real" }}
-{{- "validation-gcp-adapter.yaml" }}
+{{- "validation-adapter.yaml" }}
 {{- else }}
 {{- fail "deploymentMode must be either 'dummy' or 'real'" }}
 {{- end }}

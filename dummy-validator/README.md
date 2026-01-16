@@ -52,7 +52,7 @@ The validator supports the following simulation scenarios via the `SIMULATE_RESU
    # Replace placeholders and apply
    sed -e 's|<scenario>|success|g' \
        -e 's|<namespace>|your-namespace|g' \
-       -e 's|<status-reporter-image>|quay.io/rh-ee-dawang/status-reporter:dev-04e8d0a|g' \
+       -e 's|<status-reporter-image>|registry.ci.openshift.org/ci/status-reporter:latest|g' \
        job-template.yaml | kubectl apply -f -
    ```
 
@@ -77,7 +77,7 @@ The `job-template.yaml` file includes the following placeholders that should be 
 |-------------|-------------|----------------|
 | `<namespace>` | Your Kubernetes namespace | `default`, `validation-testing` |
 | `<scenario>` | The test scenario to run | `success`, `failure`, `hang`, `crash`, `invalid-json`, `missing-status` |
-| `<status-reporter-image>` | The status-reporter container image | `quay.io/rh-ee-dawang/status-reporter:dev-04e8d0a` |
+| `<status-reporter-image>` | The status-reporter container image | `registry.ci.openshift.org/ci/status-reporter:latest` |
 
 The `<scenario>` placeholder is used in multiple places:
 - Job name: `dummy-validator-<scenario>`
