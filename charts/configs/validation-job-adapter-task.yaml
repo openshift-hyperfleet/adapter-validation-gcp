@@ -1,0 +1,108 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "gcp-validator-{{ .clusterId | lower }}-{{ .generationId }}"
+  namespace: "{{ .clusterId | lower }}"
+  labels:
+    hyperfleet.io/cluster-id: "{{ .clusterId }}"
+    hyperfleet.io/managed-by: "{{ .managedByResourceName }}"
+    hyperfleet.io/resource-type: "validation-job"
+    app: gcp-validator
+  annotations:
+    hyperfleet.io/created-by: "{{ .createdByResourceName }}"
+    hyperfleet.io/generation: "{{ .generationId }}"
+spec:
+  backoffLimit: 0
+  # [TODO] This will be passed via parameter once adapter configuration support int parameter.
+  activeDeadlineSeconds: 310 # maxWaitTimeSeconds + 10 second buffers, maximum time to wait for k8s job completion"
+  template:
+    metadata:
+      labels:
+        app: gcp-validator
+        hyperfleet.io/cluster-id: "{{ .clusterId }}"
+    spec:
+      # Created before the job is created, as specified in the adapter configuration.
+      serviceAccountName: "{{ .gcpValidatorServiceAccount }}"
+      restartPolicy: Never
+      volumes:
+        - name: results
+          emptyDir: { }
+      containers:
+        # GCP Validator Container (replaces dummy-validator)
+        - name: gcp-validator
+          image: "{{ .gcpValidatorImage }}"
+          imagePullPolicy: Always
+          env:
+            # Required
+            - name: PROJECT_ID
+              value: "{{ .projectId }}"
+            - name: RESULTS_PATH
+              value: "{{ .resultPath }}"
+
+            # Validator control
+            - name: DISABLED_VALIDATORS
+              value: "{{ .disabledValidators }}"
+            - name: STOP_ON_FIRST_FAILURE
+              value: "false"
+
+            # API Validator config
+            - name: REQUIRED_APIS
+              value: "{{ .requiredApis }}"
+
+            # Logging
+            - name: LOG_LEVEL
+              value: "info"
+
+          volumeMounts:
+            - name: results
+              mountPath: /results
+
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "200m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+
+        # Status reporter sidecar
+        - name: status-reporter
+          image: "{{ .statusReporterImage }}"
+          imagePullPolicy: Always
+          env:
+            # Required environment variables
+            - name: JOB_NAME
+              value: "gcp-validator-{{ .clusterId | lower }}-{{ .generationId }}"
+            - name: JOB_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+
+            # Optional configuration
+            - name: RESULTS_PATH
+              value: "{{ .resultPath }}"
+            - name: POLL_INTERVAL_SECONDS
+              value: "2"
+            - name: MAX_WAIT_TIME_SECONDS
+              value: "{{ .maxWaitTimeSeconds }}"
+            - name: CONDITION_TYPE
+              value: "Available"
+            - name: LOG_LEVEL
+              value: "info"
+            - name: ADAPTER_CONTAINER_NAME
+              value: "gcp-validator"
+
+          volumeMounts:
+            - name: results
+              mountPath: /results
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"

@@ -3,9 +3,10 @@
 # Only environment-specific settings are exposed here.
 # For advanced customization, modify the templates directly.
 
-# Deployment mode: "dummy" for dummy-gcp-validation, "real" for gcp-validation
-# Currently only "dummy" is supported
-deploymentMode: "dummy"  # "dummy" or "real"
+# Deployment mode: "dummy" for simulation, "real" for actual GCP validation
+# - dummy: Uses Alpine shell script to simulate validation results
+# - real: Uses Go-based validator to perform actual GCP API checks
+deploymentMode: "real"  # "dummy" or "real"
 
 replicaCount: 1
 
@@ -72,15 +73,30 @@ hyperfleetApi:
   baseUrl: ""
   version: "v1"
 
-# Validation-specific configuration (only for dummy mode)
+# Validation-specific configuration
 validation:
   # Status reporter image (sidecar container)
-  statusReporterImage: "quay.io/rh-ee-dawang/status-reporter:dev-04e8d0a"
+  statusReporterImage: "registry.ci.openshift.org/ci/status-reporter:latest"
 
-  # Dummy validation simulation settings
+  # Dummy validation simulation settings (for deploymentMode: dummy)
   dummy:
     # Simulated result: success, failure, hang, crash, invalid-json, missing-status
     simulateResult: "success"
+    # Path where validation results are written
+    resultsPath: "/results/adapter-result.json"
+    # Maximum time to wait for validation completion (seconds)
+    maxWaitTimeSeconds: "300"
+
+  # Real GCP validator settings (for deploymentMode: real)
+  real:
+    # GCP validator container image
+    gcpValidatorImage: "registry.ci.openshift.org/ci/gcp-validator:latest"
+    # Comma-separated list of validators to disable (default: all enabled)
+    # Note: quota-check is a stub validator (not yet implemented, returns success)
+    disabledValidators: ""
+    # Comma-separated list of required GCP APIs to validate (default: empty)
+    # Example: "compute.googleapis.com,storage-api.googleapis.com"
+    requiredApis: "compute.googleapis.com,iam.googleapis.com,cloudresourcemanager.googleapis.com"
     # Path where validation results are written
     resultsPath: "/results/adapter-result.json"
     # Maximum time to wait for validation completion (seconds)

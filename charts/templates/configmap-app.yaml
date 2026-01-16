@@ -15,4 +15,8 @@ data:
   # Adapter task template referenced by the adapter config
   validation-dummy-job-adapter-task.yaml: |
 {{ .Files.Get "configs/validation-dummy-job-adapter-task.yaml" | nindent 4 }}
+  {{- else if eq .Values.deploymentMode "real" }}
+  # Adapter task template referenced by the adapter config
+  validation-job-adapter-task.yaml: |
+{{ .Files.Get "configs/validation-job-adapter-task.yaml" | nindent 4 }}
   {{- end }}

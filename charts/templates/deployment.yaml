@@ -90,6 +90,20 @@ spec:
               value: {{ .Values.validation.dummy.resultsPath | quote }}
             - name: MAX_WAIT_TIME_SECONDS
               value: {{ .Values.validation.dummy.maxWaitTimeSeconds | quote }}
+            {{- else if eq .Values.deploymentMode "real" }}
+            # Real GCP validation specific environment variables
+            - name: STATUS_REPORTER_IMAGE
+              value: {{ .Values.validation.statusReporterImage | quote }}
+            - name: GCP_VALIDATOR_IMAGE
+              value: {{ .Values.validation.real.gcpValidatorImage | quote }}
+            - name: DISABLED_VALIDATORS
+              value: {{ .Values.validation.real.disabledValidators | quote }}
+            - name: REQUIRED_APIS
+              value: {{ .Values.validation.real.requiredApis | quote }}
+            - name: RESULTS_PATH
+              value: {{ .Values.validation.real.resultsPath | quote }}
+            - name: MAX_WAIT_TIME_SECONDS
+              value: {{ .Values.validation.real.maxWaitTimeSeconds | quote }}
             {{- end }}
           resources:
             limits:
