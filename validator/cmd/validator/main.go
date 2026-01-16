@@ -20,6 +20,9 @@ const (
 	validationTimeout = 5 * time.Minute
 )
 
+// main is the entry point for the GCP validator application.
+// It loads configuration, executes all enabled validators, aggregates results,
+// and writes the output to a JSON file.
 func main() {
 	// Load configuration first to get log level
 	cfg, err := config.LoadFromEnv()

@@ -42,10 +42,6 @@ var _ = Describe("Executor", func() {
 		}
 	})
 
-	AfterEach(func() {
-		Expect(os.Unsetenv("PROJECT_ID")).To(Succeed())
-	})
-
 	Describe("ExecuteAll", func() {
 		Context("with no validators registered", func() {
 			It("should return error when no validators are enabled", func() {
@@ -161,48 +157,48 @@ var _ = Describe("Executor", func() {
 			})
 		})
 
-	Context("with dependent validators", func() {
-		var executionOrder []string
-		var mu sync.Mutex
+		Context("with dependent validators", func() {
+			var executionOrder []string
+			var mu sync.Mutex
 
-		BeforeEach(func() {
-			executionOrder = []string{}
+			BeforeEach(func() {
+				executionOrder = []string{}
 
-			// Level 0 validator
-			validator.Register(&MockValidator{
-				name:     "validator-a",
-				runAfter: []string{},
-				enabled:  true,
-				validateFunc: func(ctx context.Context, vctx *validator.Context) *validator.Result {
-					mu.Lock()
-					executionOrder = append(executionOrder, "validator-a")
-					mu.Unlock()
-					return &validator.Result{
-						ValidatorName: "validator-a",
-						Status:        validator.StatusSuccess,
-					}
-				},
-			})
-
-			// Level 1 validators (depend on validator-a)
-			for _, name := range []string{"validator-b", "validator-c"} {
-				n := name
+				// Level 0 validator
 				validator.Register(&MockValidator{
-					name:     n,
-					runAfter: []string{"validator-a"},
+					name:     "validator-a",
+					runAfter: []string{},
 					enabled:  true,
 					validateFunc: func(ctx context.Context, vctx *validator.Context) *validator.Result {
 						mu.Lock()
-						executionOrder = append(executionOrder, n)
+						executionOrder = append(executionOrder, "validator-a")
 						mu.Unlock()
 						return &validator.Result{
-							ValidatorName: n,
+							ValidatorName: "validator-a",
 							Status:        validator.StatusSuccess,
 						}
 					},
 				})
-			}
-		})
+
+				// Level 1 validators (depend on validator-a)
+				for _, name := range []string{"validator-b", "validator-c"} {
+					n := name
+					validator.Register(&MockValidator{
+						name:     n,
+						runAfter: []string{"validator-a"},
+						enabled:  true,
+						validateFunc: func(ctx context.Context, vctx *validator.Context) *validator.Result {
+							mu.Lock()
+							executionOrder = append(executionOrder, n)
+							mu.Unlock()
+							return &validator.Result{
+								ValidatorName: n,
+								Status:        validator.StatusSuccess,
+							}
+						},
+					})
+				}
+			})
 
 			It("should execute validators in dependency order", func() {
 				executor = validator.NewExecutor(vctx, logger)

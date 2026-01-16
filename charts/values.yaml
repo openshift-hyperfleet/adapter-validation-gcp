@@ -93,7 +93,7 @@ validation:
     gcpValidatorImage: "registry.ci.openshift.org/ci/gcp-validator:latest"
     # Comma-separated list of validators to disable (default: all enabled)
     # Note: quota-check is a stub validator (not yet implemented, returns success)
-    disabledValidators: ""
+    disabledValidators: "quota-check"
     # Comma-separated list of required GCP APIs to validate (default: empty)
     # Example: "compute.googleapis.com,storage-api.googleapis.com"
     requiredApis: "compute.googleapis.com,iam.googleapis.com,cloudresourcemanager.googleapis.com"

@@ -44,10 +44,12 @@ func extractErrorReason(err error, fallbackReason string) string {
 // APIEnabledValidator checks if required GCP APIs are enabled
 type APIEnabledValidator struct{}
 
+// init registers the APIEnabledValidator with the global validator registry
 func init() {
 	validator.Register(&APIEnabledValidator{})
 }
 
+// Metadata returns the validator configuration including name, description, and dependencies
 func (v *APIEnabledValidator) Metadata() validator.ValidatorMetadata {
 	return validator.ValidatorMetadata{
 		Name:        "api-enabled",
@@ -57,10 +59,12 @@ func (v *APIEnabledValidator) Metadata() validator.ValidatorMetadata {
 	}
 }
 
+// Enabled determines if this validator should run based on configuration
 func (v *APIEnabledValidator) Enabled(ctx *validator.Context) bool {
 	return ctx.Config.IsValidatorEnabled("api-enabled")
 }
 
+// Validate performs the actual validation logic to check if required GCP APIs are enabled
 func (v *APIEnabledValidator) Validate(ctx context.Context, vctx *validator.Context) *validator.Result {
 	slog.Info("Checking if required GCP APIs are enabled")
 
@@ -157,12 +161,17 @@ func (v *APIEnabledValidator) Validate(ctx context.Context, vctx *validator.Cont
 		}
 	}
 
-	slog.Info("All required APIs are enabled", "count", len(enabledAPIs))
+	// Build success message based on whether APIs were checked
+	message := fmt.Sprintf("All %d required APIs are enabled", len(enabledAPIs))
+	if len(enabledAPIs) == 0 {
+		message = "No required APIs to validate"
+	}
+	slog.Info(message)
 
 	return &validator.Result{
 		Status:  validator.StatusSuccess,
 		Reason:  "AllAPIsEnabled",
-		Message: fmt.Sprintf("All %d required APIs are enabled", len(enabledAPIs)),
+		Message: message,
 		Details: map[string]interface{}{
 			"enabled_apis": enabledAPIs,
 			"project_id":   vctx.Config.ProjectID,

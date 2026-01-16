@@ -70,7 +70,7 @@ spec:
       default: "gcp-validator-job-sa"
       description: "Maximum time to wait for validation completion"
     - name: "managedByResourceName"
-      source: "env.MANAGED_By_RESOURCE_NAME"
+      source: "env.MANAGED_BY_RESOURCE_NAME"
       type: "string"
       default: "dummy-validation-adapter"
       description: "The value for hyperfleet.io/managed-by"

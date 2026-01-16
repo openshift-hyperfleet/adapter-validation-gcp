@@ -84,6 +84,7 @@ func LoadFromEnv() (*Config, error) {
 	return cfg, nil
 }
 
+// getEnv retrieves an environment variable or returns a default value if not set
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
@@ -91,6 +92,7 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
+// getEnvBool retrieves a boolean environment variable or returns a default value if not set or invalid
 func getEnvBool(key string, defaultValue bool) bool {
 	if value := os.Getenv(key); value != "" {
 		b, err := strconv.ParseBool(value)
@@ -101,6 +103,7 @@ func getEnvBool(key string, defaultValue bool) bool {
 	return defaultValue
 }
 
+// getEnvInt retrieves an integer environment variable or returns a default value if not set or invalid
 func getEnvInt(key string, defaultValue int) int {
 	if value := os.Getenv(key); value != "" {
 		i, err := strconv.Atoi(value)

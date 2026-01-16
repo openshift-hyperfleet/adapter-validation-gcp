@@ -133,9 +133,25 @@ func (e *Executor) executeGroup(ctx context.Context, group ExecutionGroup) []*Re
 
 			start := time.Now()
 			result := validator.Validate(ctx, e.ctx)
-			result.Duration = time.Since(start)
-			result.Timestamp = time.Now().UTC()
-			result.ValidatorName = meta.Name
+
+			// Defensive nil check - validator.Validate should never return nil,
+			// but handle it to prevent nil pointer panics
+			if result == nil {
+				e.logger.Error("Validator returned nil result",
+					"validator", meta.Name)
+				result = &Result{
+					ValidatorName: meta.Name,
+					Status:        StatusFailure,
+					Reason:        "NilResult",
+					Message:       "Validator returned nil result (this is a validator implementation bug)",
+					Duration:      time.Since(start),
+					Timestamp:     time.Now().UTC(),
+				}
+			} else {
+				result.Duration = time.Since(start)
+				result.Timestamp = time.Now().UTC()
+				result.ValidatorName = meta.Name
+			}
 
 			// Thread-safe result storage
 			e.mu.Lock()
