@@ -54,7 +54,7 @@ helm-template-dummy: ## Render helm templates with dummy validation mode
 	@echo "$(GREEN)Rendering helm templates (dummy validation mode)...$(NC)"
 	helm template $(RELEASE_NAME) $(CHART_DIR) \
 		--namespace $(NAMESPACE) \
-		--set deploymentMode=dummy \
+		--set validation.useDummy=true \
 		--set broker.type=googlepubsub \
 		--set broker.googlepubsub.projectId=my-project \
 		--set broker.googlepubsub.topic=my-topic \
@@ -65,20 +65,19 @@ helm-template-dummy: ## Render helm templates with dummy validation mode
 		--set validation.dummy.simulateResult=success \
 		--set rbac.create=true
 
-# Real mode (not yet available; keep commented until implemented — see HYPERFLEET-267)
-#helm-template-real: ## Render helm templates with real validation mode (future)
-#	@echo "$(GREEN)Rendering helm templates (real validation mode)...$(NC)"
-#	helm template $(RELEASE_NAME) $(CHART_DIR) \
-#		--namespace $(NAMESPACE) \
-#		--set deploymentMode=real \
-#		--set broker.type=googlepubsub \
-#		--set broker.googlepubsub.projectId=my-project \
-#		--set broker.googlepubsub.topic=my-topic \
-#		--set broker.googlepubsub.subscription=my-subscription \
-#		--set broker.googlepubsub.deadLetterTopic=my-dlq \
-#		--set broker.subscriber.parallelism=20 \
-#		--set hyperfleetApi.baseUrl=https://api.hyperfleet.example.com \
-#		--set rbac.create=true
+helm-template-real: ## Render helm templates with real validation mode
+	@echo "$(GREEN)Rendering helm templates (real validation mode)...$(NC)"
+	helm template $(RELEASE_NAME) $(CHART_DIR) \
+		--namespace $(NAMESPACE) \
+		--set validation.useDummy=false \
+		--set broker.type=googlepubsub \
+		--set broker.googlepubsub.projectId=my-project \
+		--set broker.googlepubsub.topic=my-topic \
+		--set broker.googlepubsub.subscription=my-subscription \
+		--set broker.googlepubsub.deadLetterTopic=my-dlq \
+		--set broker.subscriber.parallelism=20 \
+		--set hyperfleetApi.baseUrl=https://api.hyperfleet.example.com \
+		--set rbac.create=true
 
 helm-template-full: helm-template-dummy ## Alias for helm-template-dummy (full dummy configuration)
 
@@ -92,7 +91,7 @@ helm-dry-run: ## Simulate helm install (requires cluster connection)
 		--create-namespace \
 		--dry-run \
 		--debug \
-		--set deploymentMode=dummy \
+		--set validation.useDummy=true \
 		--set broker.type=googlepubsub \
 		--set broker.googlepubsub.projectId=test-project \
 		--set broker.googlepubsub.topic=test-topic \

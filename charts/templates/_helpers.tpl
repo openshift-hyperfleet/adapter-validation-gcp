@@ -79,11 +79,9 @@ Create the name of the broker ConfigMap to use
 Get the adapter config file name based on deployment mode
 */}}
 {{- define "validation-gcp.adapterConfigFile" -}}
-{{- if eq .Values.deploymentMode "dummy" }}
+{{- if .Values.validation.useDummy }}
 {{- "validation-dummy-adapter.yaml" }}
-{{- else if eq .Values.deploymentMode "real" }}
-{{- "validation-adapter.yaml" }}
 {{- else }}
-{{- fail "deploymentMode must be either 'dummy' or 'real'" }}
+{{- "validation-adapter.yaml" }}
 {{- end }}
 {{- end }}

@@ -80,30 +80,27 @@ spec:
               value: {{ .Values.broker.googlepubsub.projectId | quote }}
             {{- end }}
             {{- end }}
-            {{- if eq .Values.deploymentMode "dummy" }}
-            # Dummy validation specific environment variables
+            # Common validation environment variables
             - name: STATUS_REPORTER_IMAGE
               value: {{ .Values.validation.statusReporterImage | quote }}
+            - name: RESULTS_PATH
+              value: {{ .Values.validation.resultsPath | quote }}
+            - name: MAX_WAIT_TIME_SECONDS
+              value: {{ .Values.validation.maxWaitTimeSeconds | quote }}
+            {{- if .Values.validation.useDummy }}
+            # Dummy validation specific environment variables
             - name: SIMULATE_RESULT
               value: {{ .Values.validation.dummy.simulateResult | quote }}
-            - name: RESULTS_PATH
-              value: {{ .Values.validation.dummy.resultsPath | quote }}
-            - name: MAX_WAIT_TIME_SECONDS
-              value: {{ .Values.validation.dummy.maxWaitTimeSeconds | quote }}
-            {{- else if eq .Values.deploymentMode "real" }}
+            {{- else }}
             # Real GCP validation specific environment variables
-            - name: STATUS_REPORTER_IMAGE
-              value: {{ .Values.validation.statusReporterImage | quote }}
             - name: GCP_VALIDATOR_IMAGE
               value: {{ .Values.validation.real.gcpValidatorImage | quote }}
             - name: DISABLED_VALIDATORS
               value: {{ .Values.validation.real.disabledValidators | quote }}
             - name: REQUIRED_APIS
               value: {{ .Values.validation.real.requiredApis | quote }}
-            - name: RESULTS_PATH
-              value: {{ .Values.validation.real.resultsPath | quote }}
-            - name: MAX_WAIT_TIME_SECONDS
-              value: {{ .Values.validation.real.maxWaitTimeSeconds | quote }}
+            - name: VALIDATOR_LOG_LEVEL
+              value: {{ .Values.validation.real.logLevel | default "info" | quote }}
             {{- end }}
           resources:
             limits:

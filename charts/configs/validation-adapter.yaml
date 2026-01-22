@@ -75,21 +75,21 @@ spec:
       type: "string"
       default: "300"
       description: "Maximum time to wait for validation completion"
-    - name: "gcpValidatorServiceAccount"
-      source: "env.GCP_VALIDATOR_SERVICE_ACCOUNT"
+    - name: "logLevel"
+      source: "env.VALIDATOR_LOG_LEVEL"
       type: "string"
-      default: "gcp-validator-job-sa"
-      description: "Kubernetes ServiceAccount name for the validator job"
+      default: "info"
+      description: "Log level for validation containers (debug, info, warn, error)"
+    - name: "adapterTaskServiceAccount"
+      source: "env.ADAPTER_TASK_SERVICE_ACCOUNT"
+      type: "string"
+      default: "validation-adapter-task-sa"
+      description: "Kubernetes ServiceAccount name for the adapter task"
     - name: "managedByResourceName"
       source: "env.MANAGED_BY_RESOURCE_NAME"
       type: "string"
       default: "validation-adapter"
       description: "The value for hyperfleet.io/managed-by"
-    - name: "createdByResourceName"
-      source: "env.CREATED_BY_RESOURCE_NAME"
-      type: "string"
-      default: "hyperfleet-adapter"
-      description: "The value for hyperfleet.io/created-by:"
   # ============================================================================
   # Preconditions
   # ============================================================================
@@ -139,22 +139,21 @@ spec:
   # ============================================================================
   resources:
     # ==========================================================================
-    # Resource: ServiceAccount for GCP Validation Job
+    # Resource: ServiceAccount for Adapter Task
     # ==========================================================================
-    - name: "gcpValidationServiceAccount"
+    - name: "adapterTaskServiceAccount"
       manifest:
-        # ServiceAccount for the validator job
+        # ServiceAccount for the adapter task
         apiVersion: v1
         kind: ServiceAccount
         metadata:
-          name: "{{ .gcpValidatorServiceAccount }}"
+          name: "{{ .adapterTaskServiceAccount }}"
           namespace: "{{ .clusterId | lower }}"
           labels:
             hyperfleet.io/cluster-id: "{{ .clusterId }}"
             hyperfleet.io/managed-by: "{{ .managedByResourceName }}"
             hyperfleet.io/resource-type: "service-account"
           annotations:
-            hyperfleet.io/created-by: "{{ .createdByResourceName }}"
             hyperfleet.io/generation: "{{ .generationId }}"
       discovery:
         bySelectors:
@@ -165,7 +164,7 @@ spec:
     # ==========================================================================
     # Resource: Role with necessary permissions for status reporter
     # ==========================================================================
-    - name: "gcpValidationRole"
+    - name: "adapterTaskRole"
       manifest:
         # Role with necessary permissions for status reporter
         apiVersion: rbac.authorization.k8s.io/v1
@@ -178,7 +177,6 @@ spec:
             hyperfleet.io/managed-by: "{{ .managedByResourceName }}"
             hyperfleet.io/resource-type: "role"
           annotations:
-            hyperfleet.io/created-by: "{{ .createdByResourceName }}"
             hyperfleet.io/generation: "{{ .generationId }}"
         rules:
           # Permission to get and update job status
@@ -201,7 +199,7 @@ spec:
     # ==========================================================================
     # Rolebinding to grant permissions to the service account
     # ==========================================================================
-    - name: "gcpValidationRoleBinding"
+    - name: "adapterTaskRoleBinding"
       manifest:
         # RoleBinding to grant permissions to the service account
         apiVersion: rbac.authorization.k8s.io/v1
@@ -214,7 +212,6 @@ spec:
             hyperfleet.io/managed-by: "{{ .managedByResourceName }}"
             hyperfleet.io/resource-type: "role-binding"
           annotations:
-            hyperfleet.io/created-by: "{{ .createdByResourceName }}"
             hyperfleet.io/generation: "{{ .generationId }}"
         roleRef:
           apiGroup: rbac.authorization.k8s.io
@@ -222,7 +219,7 @@ spec:
           name: status-reporter
         subjects:
           - kind: ServiceAccount
-            name: "{{ .gcpValidatorServiceAccount }}"
+            name: "{{ .adapterTaskServiceAccount }}"
             namespace: "{{ .clusterId | lower }}"
       discovery:
         bySelectors:

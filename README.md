@@ -20,25 +20,25 @@ Event-driven adapter for HyperFleet GCP cluster validation. Validates GCP cluste
 
 ## Deployment Modes
 
-This adapter supports two deployment modes via the `deploymentMode` parameter:
+This adapter supports two deployment modes via the `validation.useDummy` parameter:
 
-### Dummy Mode (Current)
-- **Value**: `deploymentMode: "dummy"`
+### Real Mode (Default, Production)
+- **Value**: `validation.useDummy: false` (default)
+- **Description**: Performs actual GCP validation checks
+- **Config File**: Uses `charts/configs/validation-adapter.yaml`
+- **Features**:
+  - Real GCP API validation
+  - Production-ready validation checks
+  - Comprehensive error reporting
+
+### Dummy Mode (Testing/Development)
+- **Value**: `validation.useDummy: true`
 - **Description**: Simulates GCP validation for testing and development
 - **Config File**: Uses `charts/configs/validation-dummy-adapter.yaml`
 - **Features**:
   - Configurable simulation results (success, failure, hang, crash, invalid-json, missing-status)
   - No actual GCP API calls
   - Fast validation cycles for testing
-
-### Real Mode (Future)
-- **Value**: `deploymentMode: "real"`
-- **Description**: Performs actual GCP validation checks
-- **Config File**: Will use `charts/configs/validation-gcp-adapter.yaml` (to be created)
-- **Features**:
-  - Real GCP API validation
-  - Production-ready validation checks
-  - Comprehensive error reporting
 
 ## Local Development
 
@@ -115,7 +115,7 @@ BROKER_TYPE=rabbitmq ./run-local.sh
 
 ### Installing the Chart
 
-**Dummy Validation Mode (Default):**
+**Real Validation Mode (Default, Production):**
 
 ```bash
 helm install validation-gcp ./charts/ \
@@ -129,20 +129,22 @@ helm install validation-gcp ./charts/ \
 **With Specific Deployment Mode:**
 
 ```bash
-# Dummy mode (simulated validation)
+# Dummy mode (simulated validation for testing)
 helm install validation-gcp ./charts/ \
-  --set deploymentMode=dummy \
+  --set validation.useDummy=true \
   --set validation.dummy.simulateResult=success \
   --set broker.type=googlepubsub \
   --set broker.googlepubsub.projectId=my-gcp-project \
   --set broker.googlepubsub.topic=my-topic \
   --set broker.googlepubsub.subscription=my-subscription
 
-# Real mode (not yet available; keep commented until implemented — see HYPERFLEET-267)
-# helm install validation-gcp ./charts/ \
-#   --set deploymentMode=real \
-#   --set broker.type=googlepubsub \
-#   ...
+# Real mode (production GCP validation - this is the default)
+helm install validation-gcp ./charts/ \
+  --set validation.useDummy=false \
+  --set broker.type=googlepubsub \
+  --set broker.googlepubsub.projectId=my-gcp-project \
+  --set broker.googlepubsub.topic=my-topic \
+  --set broker.googlepubsub.subscription=my-subscription
 ```
 
 ### Install to a Specific Namespace
@@ -170,11 +172,11 @@ helm delete validation-gcp --namespace hyperfleet-system
 
 All configurable parameters are in `values.yaml`. For advanced customization, modify the templates directly.
 
-### Deployment Mode
+### Validation Mode
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `deploymentMode` | Deployment mode: "dummy" or "real" | `"dummy"` |
+| `validation.useDummy` | Use dummy mode for testing (true) or real validation (false) | `false` |
 
 ### Image & Replica
 
@@ -259,17 +261,28 @@ When `rbac.create=true`, the adapter gets **minimal permissions** needed for val
 
 ### Validation Configuration
 
+#### Common Settings (Both Modes)
+
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `validation.statusReporterImage` | Status reporter sidecar image | `<The image built by https://github.com/openshift-hyperfleet/status-reporter>` |
+| `validation.statusReporterImage` | Status reporter sidecar image | `registry.ci.openshift.org/ci/status-reporter:latest` |
+| `validation.resultsPath` | Path where validation results are written | `"/results/adapter-result.json"` |
+| `validation.maxWaitTimeSeconds` | Maximum time to wait for validation completion | `"300"` |
 
-#### Dummy Validation Mode Settings
+#### Dummy Mode Settings (when `validation.useDummy=true`)
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `validation.dummy.simulateResult` | Simulated result (success, failure, hang, crash, invalid-json, missing-status) | `"success"` |
-| `validation.dummy.resultsPath` | Path where validation results are written | `"/results/adapter-result.json"` |
-| `validation.dummy.maxWaitTimeSeconds` | Maximum time to wait for validation completion | `"300"` |
+
+#### Real Mode Settings (when `validation.useDummy=false`)
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `validation.real.gcpValidatorImage` | GCP validator container image | `registry.ci.openshift.org/ci/gcp-validator:latest` |
+| `validation.real.disabledValidators` | Comma-separated list of validators to disable | `"quota-check"` |
+| `validation.real.requiredApis` | Comma-separated list of required GCP APIs to validate | `"compute.googleapis.com,iam.googleapis.com,cloudresourcemanager.googleapis.com"` |
+| `validation.real.logLevel` | Log level for validation containers (debug, info, warn, error) | `"info"` |
 
 ### Environment Variables
 
@@ -291,11 +304,10 @@ env:
 
 ## Examples
 
-### Basic Dummy Validation with Google Pub/Sub
+### Basic Real Validation with Google Pub/Sub (Default)
 
 ```bash
 helm install validation-gcp ./charts/ \
-  --set deploymentMode=dummy \
   --set broker.type=googlepubsub \
   --set broker.googlepubsub.projectId=my-gcp-project \
   --set broker.googlepubsub.topic=my-topic \
@@ -308,6 +320,7 @@ helm install validation-gcp ./charts/ \
 ```bash
 # Simulate failure
 helm install validation-gcp ./charts/ \
+  --set validation.useDummy=true \
   --set validation.dummy.simulateResult=failure \
   --set broker.type=googlepubsub \
   --set broker.googlepubsub.projectId=my-gcp-project \
@@ -316,8 +329,9 @@ helm install validation-gcp ./charts/ \
 
 # Simulate hang (for timeout testing)
 helm install validation-gcp ./charts/ \
+  --set validation.useDummy=true \
   --set validation.dummy.simulateResult=hang \
-  --set validation.dummy.maxWaitTimeSeconds=60 \
+  --set validation.maxWaitTimeSeconds=60 \
   --set broker.type=googlepubsub \
   ...
 ```
@@ -326,7 +340,7 @@ helm install validation-gcp ./charts/ \
 
 ```bash
 helm install validation-gcp ./charts/ \
-  --set deploymentMode=dummy \
+  --set validation.useDummy=true \
   --set broker.type=rabbitmq \
   --set broker.rabbitmq.url="amqp://user:password@rabbitmq.svc:5672/"
 ```
@@ -354,10 +368,10 @@ gcloud projects add-iam-policy-binding my-gcp-project \
 Then deploy:
 
 ```bash
+# Real validation mode (default)
 helm install validation-gcp ./charts/ \
   --namespace hyperfleet-system \
   --create-namespace \
-  --set deploymentMode=dummy \
   --set image.registry=us-central1-docker.pkg.dev/my-project/my-repo \
   --set image.repository=hyperfleet-adapter \
   --set image.tag=v0.1.0 \
@@ -375,8 +389,6 @@ helm install validation-gcp ./charts/ \
 <summary>Example <code>my-values.yaml</code></summary>
 
 ```yaml
-deploymentMode: dummy
-
 replicaCount: 1
 
 image:
@@ -409,11 +421,24 @@ broker:
     parallelism: 1
 
 validation:
-  statusReporterImage: <The image built by https://github.com/openshift-hyperfleet/status-reporter>
+  # Use dummy mode for testing, false for production (default)
+  useDummy: false
+
+  # Common settings
+  statusReporterImage: registry.ci.openshift.org/ci/status-reporter:latest
+  resultsPath: /results/adapter-result.json
+  maxWaitTimeSeconds: "300"
+
+  # Dummy mode settings (only when useDummy=true)
   dummy:
     simulateResult: success
-    resultsPath: /results/adapter-result.json
-    maxWaitTimeSeconds: "300"
+
+  # Real mode settings (only when useDummy=false)
+  real:
+    gcpValidatorImage: registry.ci.openshift.org/ci/gcp-validator:latest
+    disabledValidators: "quota-check"
+    requiredApis: "compute.googleapis.com,iam.googleapis.com,cloudresourcemanager.googleapis.com"
+    logLevel: "info"
 ```
 
 </details>
@@ -437,10 +462,14 @@ The deployment sets these environment variables automatically:
 | `BROKER_SUBSCRIPTION_ID` | From `broker.googlepubsub.subscription` | When `broker.type=googlepubsub` |
 | `BROKER_TOPIC` | From `broker.googlepubsub.topic` | When `broker.type=googlepubsub` |
 | `GCP_PROJECT_ID` | From `broker.googlepubsub.projectId` | When `broker.type=googlepubsub` |
-| `STATUS_REPORTER_IMAGE` | From `validation.statusReporterImage` | When `deploymentMode=dummy` |
-| `SIMULATE_RESULT` | From `validation.dummy.simulateResult` | When `deploymentMode=dummy` |
-| `RESULTS_PATH` | From `validation.dummy.resultsPath` | When `deploymentMode=dummy` |
-| `MAX_WAIT_TIME_SECONDS` | From `validation.dummy.maxWaitTimeSeconds` | When `deploymentMode=dummy` |
+| `STATUS_REPORTER_IMAGE` | From `validation.statusReporterImage` | Always |
+| `RESULTS_PATH` | From `validation.resultsPath` | Always |
+| `MAX_WAIT_TIME_SECONDS` | From `validation.maxWaitTimeSeconds` | Always |
+| `SIMULATE_RESULT` | From `validation.dummy.simulateResult` | When `validation.useDummy=true` |
+| `GCP_VALIDATOR_IMAGE` | From `validation.real.gcpValidatorImage` | When `validation.useDummy=false` |
+| `DISABLED_VALIDATORS` | From `validation.real.disabledValidators` | When `validation.useDummy=false` |
+| `REQUIRED_APIS` | From `validation.real.requiredApis` | When `validation.useDummy=false` |
+| `VALIDATOR_LOG_LEVEL` | From `validation.real.logLevel` | When `validation.useDummy=false` |
 
 ## License
 
