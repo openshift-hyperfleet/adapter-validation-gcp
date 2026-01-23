@@ -1,13 +1,13 @@
 package gcp_test
 
 import (
-	"testing"
+    "testing"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+    . "github.com/onsi/ginkgo/v2"
+    . "github.com/onsi/gomega"
 )
 
 func TestGCP(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "GCP Suite")
+    RegisterFailHandler(Fail)
+    RunSpecs(t, "GCP Suite")
 }
