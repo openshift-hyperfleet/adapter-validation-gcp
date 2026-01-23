@@ -58,7 +58,6 @@ var _ = Describe("Executor", func() {
             BeforeEach(func() {
                 mockValidator = &MockValidator{
                     name:    "test-validator",
-                    enabled: true,
                     validateFunc: func(ctx context.Context, vctx *validator.Context) *validator.Result {
                         return &validator.Result{
                             ValidatorName: "test-validator",
@@ -102,9 +101,10 @@ var _ = Describe("Executor", func() {
             BeforeEach(func() {
                 mockValidator = &MockValidator{
                     name:    "disabled-validator",
-                    enabled: false,
                 }
                 validator.Register(mockValidator)
+                // Disable the validator via config
+                vctx.Config.DisabledValidators = []string{"disabled-validator"}
             })
 
             It("should skip disabled validators", func() {
@@ -122,7 +122,6 @@ var _ = Describe("Executor", func() {
                     n := name // Capture loop variable for closure
                     validator.Register(&MockValidator{
                         name:    n,
-                        enabled: true,
                         validateFunc: func(ctx context.Context, vctx *validator.Context) *validator.Result {
                             time.Sleep(10 * time.Millisecond) // Simulate work
                             return &validator.Result{
@@ -167,7 +166,6 @@ var _ = Describe("Executor", func() {
                 validator.Register(&MockValidator{
                     name:     "validator-a",
                     runAfter: []string{},
-                    enabled:  true,
                     validateFunc: func(ctx context.Context, vctx *validator.Context) *validator.Result {
                         mu.Lock()
                         executionOrder = append(executionOrder, "validator-a")
@@ -185,7 +183,6 @@ var _ = Describe("Executor", func() {
                     validator.Register(&MockValidator{
                         name:     n,
                         runAfter: []string{"validator-a"},
-                        enabled:  true,
                         validateFunc: func(ctx context.Context, vctx *validator.Context) *validator.Result {
                             mu.Lock()
                             executionOrder = append(executionOrder, n)
@@ -222,7 +219,6 @@ var _ = Describe("Executor", func() {
                 validator.Register(&MockValidator{
                     name:     n,
                     runAfter: []string{"validator-a"}, // depends on validator-a which isn't registered yet
-                    enabled:  true,
                     validateFunc: func(ctx context.Context, vctx *validator.Context) *validator.Result {
                         mu.Lock()
                         executionOrder = append(executionOrder, n)
@@ -239,7 +235,6 @@ var _ = Describe("Executor", func() {
             validator.Register(&MockValidator{
                 name:     "validator-a",
                 runAfter: []string{},
-                enabled:  true,
                 validateFunc: func(ctx context.Context, vctx *validator.Context) *validator.Result {
                     mu.Lock()
                     executionOrder = append(executionOrder, "validator-a")
@@ -269,7 +264,6 @@ var _ = Describe("Executor", func() {
                 // First validator fails
                 validator.Register(&MockValidator{
                     name:    "failing-validator",
-                    enabled: true,
                     validateFunc: func(ctx context.Context, vctx *validator.Context) *validator.Result {
                         return &validator.Result{
                             ValidatorName: "failing-validator",
@@ -284,7 +278,6 @@ var _ = Describe("Executor", func() {
                 validator.Register(&MockValidator{
                     name:     "should-not-run",
                     runAfter: []string{"failing-validator"},
-                    enabled:  true,
                     validateFunc: func(ctx context.Context, vctx *validator.Context) *validator.Result {
                         Fail("This validator should not execute")
                         return nil
@@ -305,7 +298,6 @@ var _ = Describe("Executor", func() {
             BeforeEach(func() {
                 validator.Register(&MockValidator{
                     name:    "failing-validator",
-                    enabled: true,
                     validateFunc: func(ctx context.Context, vctx *validator.Context) *validator.Result {
                         return &validator.Result{
                             ValidatorName: "failing-validator",

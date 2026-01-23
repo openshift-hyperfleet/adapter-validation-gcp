@@ -20,17 +20,14 @@ var _ = Describe("DependencyResolver", func() {
                     &MockValidator{
                         name:     "validator-a",
                         runAfter: []string{},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "validator-b",
                         runAfter: []string{},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "validator-c",
                         runAfter: []string{},
-                        enabled:  true,
                     },
                 }
                 resolver = validator.NewDependencyResolver(validators)
@@ -61,17 +58,14 @@ var _ = Describe("DependencyResolver", func() {
                     &MockValidator{
                         name:     "validator-a",
                         runAfter: []string{},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "validator-b",
                         runAfter: []string{"validator-a"},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "validator-c",
                         runAfter: []string{"validator-b"},
-                        enabled:  true,
                     },
                 }
                 resolver = validator.NewDependencyResolver(validators)
@@ -102,22 +96,18 @@ var _ = Describe("DependencyResolver", func() {
                     &MockValidator{
                         name:     "wif-check",
                         runAfter: []string{},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "api-enabled",
                         runAfter: []string{"wif-check"},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "quota-check",
                         runAfter: []string{"wif-check"},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "network-check",
                         runAfter: []string{"wif-check"},
-                        enabled:  true,
                     },
                 }
                 resolver = validator.NewDependencyResolver(validators)
@@ -150,27 +140,22 @@ var _ = Describe("DependencyResolver", func() {
                     &MockValidator{
                         name:     "wif-check",
                         runAfter: []string{},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "api-enabled",
                         runAfter: []string{"wif-check"},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "quota-check",
                         runAfter: []string{"wif-check"},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "iam-check",
                         runAfter: []string{"api-enabled"},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "network-check",
                         runAfter: []string{"api-enabled", "quota-check"},
-                        enabled:  true,
                     },
                 }
                 resolver = validator.NewDependencyResolver(validators)
@@ -201,22 +186,18 @@ var _ = Describe("DependencyResolver", func() {
                     &MockValidator{
                         name:     "wif-check",
                         runAfter: []string{},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "api-enabled",
                         runAfter: []string{"wif-check"},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "quota-check",
                         runAfter: []string{"wif-check"},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "network-check",
                         runAfter: []string{"wif-check", "api-enabled"},
-                        enabled:  true,
                     },
                 }
                 resolver = validator.NewDependencyResolver(validators)
@@ -254,12 +235,10 @@ var _ = Describe("DependencyResolver", func() {
                     &MockValidator{
                         name:     "validator-a",
                         runAfter: []string{"validator-b"},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "validator-b",
                         runAfter: []string{"validator-a"},
-                        enabled:  true,
                     },
                 }
                 resolver = validator.NewDependencyResolver(validators)
@@ -278,7 +257,6 @@ var _ = Describe("DependencyResolver", func() {
                     &MockValidator{
                         name:     "validator-a",
                         runAfter: []string{"validator-a"},
-                        enabled:  true,
                     },
                 }
                 resolver = validator.NewDependencyResolver(validators)
@@ -297,17 +275,14 @@ var _ = Describe("DependencyResolver", func() {
                     &MockValidator{
                         name:     "validator-a",
                         runAfter: []string{"validator-c"},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "validator-b",
                         runAfter: []string{"validator-a"},
-                        enabled:  true,
                     },
                     &MockValidator{
                         name:     "validator-c",
                         runAfter: []string{"validator-b"},
-                        enabled:  true,
                     },
                 }
                 resolver = validator.NewDependencyResolver(validators)
@@ -326,7 +301,6 @@ var _ = Describe("DependencyResolver", func() {
                     &MockValidator{
                         name:     "validator-a",
                         runAfter: []string{"non-existent"},
-                        enabled:  true,
                     },
                 }
                 resolver = validator.NewDependencyResolver(validators)
@@ -359,8 +333,8 @@ var _ = Describe("DependencyResolver", func() {
         Context("with validators that have no dependencies", func() {
             BeforeEach(func() {
                 validators = []validator.Validator{
-                    &MockValidator{name: "validator-a", runAfter: []string{}, enabled: true},
-                    &MockValidator{name: "validator-b", runAfter: []string{}, enabled: true},
+                    &MockValidator{name: "validator-a", runAfter: []string{}},
+                    &MockValidator{name: "validator-b", runAfter: []string{}},
                 }
                 resolver = validator.NewDependencyResolver(validators)
             })
@@ -377,9 +351,9 @@ var _ = Describe("DependencyResolver", func() {
         Context("with linear dependencies", func() {
             BeforeEach(func() {
                 validators = []validator.Validator{
-                    &MockValidator{name: "validator-a", runAfter: []string{}, enabled: true},
-                    &MockValidator{name: "validator-b", runAfter: []string{"validator-a"}, enabled: true},
-                    &MockValidator{name: "validator-c", runAfter: []string{"validator-b"}, enabled: true},
+                    &MockValidator{name: "validator-a", runAfter: []string{}},
+                    &MockValidator{name: "validator-b", runAfter: []string{"validator-a"}},
+                    &MockValidator{name: "validator-c", runAfter: []string{"validator-b"}},
                 }
                 resolver = validator.NewDependencyResolver(validators)
             })
@@ -395,10 +369,10 @@ var _ = Describe("DependencyResolver", func() {
         Context("with complex dependencies", func() {
             BeforeEach(func() {
                 validators = []validator.Validator{
-                    &MockValidator{name: "wif-check", runAfter: []string{}, enabled: true},
-                    &MockValidator{name: "api-enabled", runAfter: []string{"wif-check"}, enabled: true},
-                    &MockValidator{name: "quota-check", runAfter: []string{"wif-check"}, enabled: true},
-                    &MockValidator{name: "network-check", runAfter: []string{"api-enabled", "quota-check"}, enabled: true},
+                    &MockValidator{name: "wif-check", runAfter: []string{}},
+                    &MockValidator{name: "api-enabled", runAfter: []string{"wif-check"}},
+                    &MockValidator{name: "quota-check", runAfter: []string{"wif-check"}},
+                    &MockValidator{name: "network-check", runAfter: []string{"api-enabled", "quota-check"}},
                 }
                 resolver = validator.NewDependencyResolver(validators)
             })
@@ -416,7 +390,7 @@ var _ = Describe("DependencyResolver", func() {
         Context("with missing dependency", func() {
             BeforeEach(func() {
                 validators = []validator.Validator{
-                    &MockValidator{name: "validator-a", runAfter: []string{"non-existent"}, enabled: true},
+                    &MockValidator{name: "validator-a", runAfter: []string{"non-existent"}},
                 }
                 resolver = validator.NewDependencyResolver(validators)
             })
@@ -434,8 +408,8 @@ var _ = Describe("DependencyResolver", func() {
         Context("with partial missing dependencies", func() {
             BeforeEach(func() {
                 validators = []validator.Validator{
-                    &MockValidator{name: "validator-a", runAfter: []string{}, enabled: true},
-                    &MockValidator{name: "validator-b", runAfter: []string{"validator-a", "non-existent"}, enabled: true},
+                    &MockValidator{name: "validator-a", runAfter: []string{}},
+                    &MockValidator{name: "validator-b", runAfter: []string{"validator-a", "non-existent"}},
                 }
                 resolver = validator.NewDependencyResolver(validators)
             })
@@ -458,8 +432,8 @@ var _ = Describe("DependencyResolver", func() {
         Context("with validators that have no dependencies", func() {
             BeforeEach(func() {
                 validators = []validator.Validator{
-                    &MockValidator{name: "validator-a", runAfter: []string{}, enabled: true},
-                    &MockValidator{name: "validator-b", runAfter: []string{}, enabled: true},
+                    &MockValidator{name: "validator-a", runAfter: []string{}},
+                    &MockValidator{name: "validator-b", runAfter: []string{}},
                 }
                 resolver = validator.NewDependencyResolver(validators)
             })
@@ -478,9 +452,9 @@ var _ = Describe("DependencyResolver", func() {
         Context("with linear dependencies", func() {
             BeforeEach(func() {
                 validators = []validator.Validator{
-                    &MockValidator{name: "validator-a", runAfter: []string{}, enabled: true},
-                    &MockValidator{name: "validator-b", runAfter: []string{"validator-a"}, enabled: true},
-                    &MockValidator{name: "validator-c", runAfter: []string{"validator-b"}, enabled: true},
+                    &MockValidator{name: "validator-a", runAfter: []string{}},
+                    &MockValidator{name: "validator-b", runAfter: []string{"validator-a"}},
+                    &MockValidator{name: "validator-c", runAfter: []string{"validator-b"}},
                 }
                 resolver = validator.NewDependencyResolver(validators)
             })
@@ -501,10 +475,10 @@ var _ = Describe("DependencyResolver", func() {
         Context("with parallel dependencies", func() {
             BeforeEach(func() {
                 validators = []validator.Validator{
-                    &MockValidator{name: "wif-check", runAfter: []string{}, enabled: true},
-                    &MockValidator{name: "api-enabled", runAfter: []string{"wif-check"}, enabled: true},
-                    &MockValidator{name: "quota-check", runAfter: []string{"wif-check"}, enabled: true},
-                    &MockValidator{name: "network-check", runAfter: []string{"wif-check"}, enabled: true},
+                    &MockValidator{name: "wif-check", runAfter: []string{}},
+                    &MockValidator{name: "api-enabled", runAfter: []string{"wif-check"}},
+                    &MockValidator{name: "quota-check", runAfter: []string{"wif-check"}},
+                    &MockValidator{name: "network-check", runAfter: []string{"wif-check"}},
                 }
                 resolver = validator.NewDependencyResolver(validators)
             })
@@ -526,11 +500,11 @@ var _ = Describe("DependencyResolver", func() {
         Context("with complex dependency graph", func() {
             BeforeEach(func() {
                 validators = []validator.Validator{
-                    &MockValidator{name: "wif-check", runAfter: []string{}, enabled: true},
-                    &MockValidator{name: "api-enabled", runAfter: []string{"wif-check"}, enabled: true},
-                    &MockValidator{name: "quota-check", runAfter: []string{"wif-check"}, enabled: true},
-                    &MockValidator{name: "iam-check", runAfter: []string{"api-enabled"}, enabled: true},
-                    &MockValidator{name: "network-check", runAfter: []string{"api-enabled", "quota-check"}, enabled: true},
+                    &MockValidator{name: "wif-check", runAfter: []string{}},
+                    &MockValidator{name: "api-enabled", runAfter: []string{"wif-check"}},
+                    &MockValidator{name: "quota-check", runAfter: []string{"wif-check"}},
+                    &MockValidator{name: "iam-check", runAfter: []string{"api-enabled"}},
+                    &MockValidator{name: "network-check", runAfter: []string{"api-enabled", "quota-check"}},
                 }
                 resolver = validator.NewDependencyResolver(validators)
             })

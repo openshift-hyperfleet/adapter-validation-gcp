@@ -15,7 +15,6 @@ type MockValidator struct {
     description  string
     runAfter     []string
     tags         []string
-    enabled      bool
     validateFunc func(ctx context.Context, vctx *validator.Context) *validator.Result
 }
 
@@ -26,10 +25,6 @@ func (m *MockValidator) Metadata() validator.ValidatorMetadata {
         RunAfter:    m.runAfter,
         Tags:        m.tags,
     }
-}
-
-func (m *MockValidator) Enabled(ctx *validator.Context) bool {
-    return m.enabled
 }
 
 func (m *MockValidator) Validate(ctx context.Context, vctx *validator.Context) *validator.Result {
@@ -58,14 +53,12 @@ var _ = Describe("Registry", func() {
             description: "First test validator",
             runAfter:    []string{},
             tags:        []string{"test", "mock"},
-            enabled:     true,
         }
         mockValidator2 = &MockValidator{
             name:        "test-validator-2",
             description: "Second test validator",
             runAfter:    []string{"test-validator-1"},
             tags:        []string{"test", "dependent"},
-            enabled:     true,
         }
     })
 
@@ -94,7 +87,6 @@ var _ = Describe("Registry", func() {
                 duplicate := &MockValidator{
                     name:        "test-validator-1",
                     description: "Duplicate validator",
-                    enabled:     true,
                 }
                 testRegistry.Register(duplicate)
                 validators := testRegistry.GetAll()

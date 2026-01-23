@@ -21,9 +21,6 @@ type Validator interface {
     // Metadata returns validator configuration (name, dependencies, etc.)
     Metadata() ValidatorMetadata
 
-    // Enabled determines if this validator should run based on context/config
-    Enabled(ctx *Context) bool
-
     // Validate performs the actual validation logic
     Validate(ctx context.Context, vctx *Context) *Result
 }

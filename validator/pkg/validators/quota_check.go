@@ -26,11 +26,6 @@ func (v *QuotaCheckValidator) Metadata() validator.ValidatorMetadata {
     }
 }
 
-// Enabled determines if this validator should run based on configuration
-func (v *QuotaCheckValidator) Enabled(ctx *validator.Context) bool {
-    return ctx.Config.IsValidatorEnabled("quota-check")
-}
-
 // Validate performs the actual validation logic (currently a stub returning success)
 func (v *QuotaCheckValidator) Validate(ctx context.Context, vctx *validator.Context) *validator.Result {
     slog.Info("Running quota check validator (stub implementation)")

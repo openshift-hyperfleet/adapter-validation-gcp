@@ -58,11 +58,6 @@ func (v *APIEnabledValidator) Metadata() validator.ValidatorMetadata {
     }
 }
 
-// Enabled determines if this validator should run based on configuration
-func (v *APIEnabledValidator) Enabled(ctx *validator.Context) bool {
-    return ctx.Config.IsValidatorEnabled("api-enabled")
-}
-
 // Validate performs the actual validation logic to check if required GCP APIs are enabled
 func (v *APIEnabledValidator) Validate(ctx context.Context, vctx *validator.Context) *validator.Result {
     slog.Info("Checking if required GCP APIs are enabled")

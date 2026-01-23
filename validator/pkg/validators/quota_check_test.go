@@ -53,10 +53,11 @@ var _ = Describe("QuotaCheckValidator", func() {
         })
     })
 
-    Describe("Enabled", func() {
+    Describe("Enabled Status", func() {
         Context("when validator is not explicitly disabled", func() {
-            It("should be enabled by default", func() {
-                enabled := v.Enabled(vctx)
+            It("should be enabled by default in config", func() {
+                meta := v.Metadata()
+                enabled := vctx.Config.IsValidatorEnabled(meta.Name)
                 Expect(enabled).To(BeTrue())
             })
         })
@@ -69,8 +70,9 @@ var _ = Describe("QuotaCheckValidator", func() {
                 vctx.Config = cfg
             })
 
-            It("should be disabled", func() {
-                enabled := v.Enabled(vctx)
+            It("should be disabled in config", func() {
+                meta := v.Metadata()
+                enabled := vctx.Config.IsValidatorEnabled(meta.Name)
                 Expect(enabled).To(BeFalse())
             })
         })

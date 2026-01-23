@@ -81,8 +81,9 @@ var _ = Describe("Validator Integration Tests", func() {
                 v, exists := validator.Get("api-enabled")
                 Expect(exists).To(BeTrue(), "api-enabled validator should be registered")
 
-                // Check if it's enabled
-                enabled := v.Enabled(vctx)
+                // Check if it's enabled using config
+                meta := v.Metadata()
+                enabled := vctx.Config.IsValidatorEnabled(meta.Name)
                 if !enabled {
                     Skip("api-enabled validator is disabled in configuration")
                 }
@@ -116,7 +117,9 @@ var _ = Describe("Validator Integration Tests", func() {
                 v, exists := validator.Get("quota-check")
                 Expect(exists).To(BeTrue(), "quota-check validator should be registered")
 
-                enabled := v.Enabled(vctx)
+                // Check if it's enabled using config
+                meta := v.Metadata()
+                enabled := vctx.Config.IsValidatorEnabled(meta.Name)
                 if !enabled {
                     Skip("quota-check validator is disabled in configuration")
                 }

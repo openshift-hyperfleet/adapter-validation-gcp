@@ -29,13 +29,13 @@ func (e *Executor) ExecuteAll(ctx context.Context) ([]*Result, error) {
     // 1. Get all registered validators
     allValidators := GetAll()
 
-    // 2. Filter enabled validators
+    // 2. Filter enabled validators using config
     enabledValidators := []Validator{}
     for _, v := range allValidators {
-        if v.Enabled(e.ctx) {
+        meta := v.Metadata()
+        if e.ctx.Config.IsValidatorEnabled(meta.Name) {
             enabledValidators = append(enabledValidators, v)
         } else {
-            meta := v.Metadata()
             e.logger.Info("Validator disabled, skipping", "validator", meta.Name)
         }
     }
