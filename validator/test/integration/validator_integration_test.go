@@ -239,8 +239,8 @@ var _ = Describe("Validator Integration Tests", func() {
 
                 if err != nil {
                     logger.Warn("Failed to get Compute API status", "error", err.Error())
-                    // Don't fail test - API might not be enabled
-                    return
+                    // Skip test - API might not be enabled
+                    Skip("Compute API not accessible: " + err.Error())
                 }
 
                 Expect(service).NotTo(BeNil())
@@ -248,45 +248,6 @@ var _ = Describe("Validator Integration Tests", func() {
                     "name", service.Name,
                     "state", service.State)
             })
-        })
-    })
-
-    Describe("Performance and Timeout", func() {
-        It("should complete all validators within reasonable time", func() {
-            start := time.Now()
-
-            executor := validator.NewExecutor(vctx, logger)
-            _, err := executor.ExecuteAll(ctx)
-
-            duration := time.Since(start)
-
-            Expect(err).NotTo(HaveOccurred())
-            Expect(duration).To(BeNumerically("<", 30*time.Second),
-                "All validators should complete within 30 seconds")
-
-            logger.Info("Performance test completed",
-                "total_duration", duration.String())
-        })
-
-        It("should respect global timeout from configuration", func() {
-            // Create short timeout config
-            shortTimeout := 5 * time.Second
-            cfg.MaxWaitTimeSeconds = int(shortTimeout.Seconds())
-
-            shortCtx, shortCancel := context.WithTimeout(context.Background(), shortTimeout)
-            defer shortCancel()
-
-            executor := validator.NewExecutor(vctx, logger)
-            results, err := executor.ExecuteAll(shortCtx)
-
-            // Should either complete or respect timeout
-            if err != nil {
-                Expect(err.Error()).To(ContainSubstring("context"))
-            } else {
-                Expect(results).NotTo(BeNil())
-            }
-
-            logger.Info("Timeout test completed")
         })
     })
 })

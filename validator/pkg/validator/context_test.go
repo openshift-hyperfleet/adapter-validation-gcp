@@ -187,27 +187,56 @@ var _ = Describe("Context", func() {
             vctx = validator.NewContext(cfg, logger)
         })
 
-
-        It("should handle concurrent access to different getters safely", func() {
+        It("should handle concurrent access to the SAME getter safely", func() {
             ctx := context.Background()
             var wg sync.WaitGroup
+            const numGoroutines = 50
 
-            // Launch multiple goroutines calling different getters
+            // This test validates the critical race condition fix:
+            // Multiple goroutines calling the same getter concurrently should only
+            // create the service once, not 50 times.
+            // Before the sync.Once fix, all 50 goroutines could pass the nil check
+            // and create duplicate service instances (resource waste + race condition).
+            for i := 0; i < numGoroutines; i++ {
+                wg.Add(1)
+                go func() {
+                    defer GinkgoRecover()
+                    defer wg.Done()
+                    _, _ = vctx.GetServiceUsageService(ctx)
+                    // Don't check error - we just verify sync.Once prevents race conditions
+                }()
+            }
+
+            // Should complete without race conditions or panics
+            // Run with -race flag to detect any data races
+            wg.Wait()
+        })
+
+        It("should handle concurrent access to ALL getters from many goroutines", func() {
+            ctx := context.Background()
+            var wg sync.WaitGroup
+            const goroutinesPerGetter = 20
+
+            // All service getters
             getters := []func(context.Context) (interface{}, error){
                 func(ctx context.Context) (interface{}, error) { return vctx.GetComputeService(ctx) },
                 func(ctx context.Context) (interface{}, error) { return vctx.GetIAMService(ctx) },
                 func(ctx context.Context) (interface{}, error) { return vctx.GetServiceUsageService(ctx) },
                 func(ctx context.Context) (interface{}, error) { return vctx.GetMonitoringService(ctx) },
+                func(ctx context.Context) (interface{}, error) { return vctx.GetCloudResourceManagerService(ctx) },
             }
 
+            // Launch multiple goroutines for each getter
+            // This simulates real-world parallel validator execution
             for _, getter := range getters {
-                wg.Add(1)
-                go func(g func(context.Context) (interface{}, error)) {
-                    defer GinkgoRecover()
-                    defer wg.Done()
-                    _, _ = g(ctx)
-                    // Don't check error - just verify no race conditions/panics
-                }(getter)
+                for i := 0; i < goroutinesPerGetter; i++ {
+                    wg.Add(1)
+                    go func(g func(context.Context) (interface{}, error)) {
+                        defer GinkgoRecover()
+                        defer wg.Done()
+                        _, _ = g(ctx)
+                    }(getter)
+                }
             }
 
             // Should complete without race conditions or panics

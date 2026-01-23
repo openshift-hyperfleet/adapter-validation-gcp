@@ -165,13 +165,12 @@ func (r *DependencyResolver) ToMermaid() string {
     // Add edges for all dependencies
     for name, v := range r.validators {
         meta := v.Metadata()
-        if len(meta.RunAfter) > 0 {
-            hasDependencies[name] = true
-            for _, dep := range meta.RunAfter {
-                // Only show edge if dependency exists in our validator set
-                if _, exists := r.validators[dep]; exists {
-                    result += fmt.Sprintf("    %s --> %s\n", name, dep)
-                }
+        for _, dep := range meta.RunAfter {
+            // Only show edge if dependency exists in our validator set
+            if _, exists := r.validators[dep]; exists {
+                result += fmt.Sprintf("    %s --> %s\n", name, dep)
+                // Only mark as having dependencies when at least one edge is actually emitted
+                hasDependencies[name] = true
             }
         }
     }

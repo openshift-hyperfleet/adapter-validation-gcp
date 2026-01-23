@@ -421,11 +421,35 @@ var _ = Describe("DependencyResolver", func() {
                 resolver = validator.NewDependencyResolver(validators)
             })
 
-            It("should not render edges for missing dependencies", func() {
+            It("should not render edges for missing dependencies but still show the validator as standalone node", func() {
                 mermaid := resolver.ToMermaid()
                 Expect(mermaid).To(ContainSubstring("flowchart TD"))
                 Expect(mermaid).NotTo(ContainSubstring("-->"))
                 Expect(mermaid).NotTo(ContainSubstring("non-existent"))
+                // Validator should still appear as a standalone node since no edges were emitted
+                Expect(mermaid).To(ContainSubstring("validator-a"))
+            })
+        })
+
+        Context("with partial missing dependencies", func() {
+            BeforeEach(func() {
+                validators = []validator.Validator{
+                    &MockValidator{name: "validator-a", runAfter: []string{}, enabled: true},
+                    &MockValidator{name: "validator-b", runAfter: []string{"validator-a", "non-existent"}, enabled: true},
+                }
+                resolver = validator.NewDependencyResolver(validators)
+            })
+
+            It("should render edges only for existing dependencies and not show validator as standalone", func() {
+                mermaid := resolver.ToMermaid()
+                Expect(mermaid).To(ContainSubstring("flowchart TD"))
+                // Should have edge to existing dependency
+                Expect(mermaid).To(ContainSubstring("validator-b --> validator-a"))
+                // Should not reference missing dependency
+                Expect(mermaid).NotTo(ContainSubstring("non-existent"))
+                // validator-b should not appear as standalone since it has at least one valid edge
+                // validator-a should appear as standalone
+                Expect(mermaid).To(MatchRegexp(`(?m)^\s+validator-a\s*$`))
             })
         })
     })
