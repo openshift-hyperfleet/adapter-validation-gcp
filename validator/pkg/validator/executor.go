@@ -178,10 +178,6 @@ func (e *Executor) executeGroup(ctx context.Context, group ExecutionGroup) []*Re
                     "reason", result.Reason,
                     "message", result.Message)
                 e.logger.Warn("Validator completed with failure", logAttrs...)
-            case StatusSkipped:
-                // Add reason for skipped validators
-                logAttrs = append(logAttrs, "reason", result.Reason)
-                e.logger.Info("Validator skipped", logAttrs...)
             default:
                 e.logger.Info("Validator completed", logAttrs...)
             }

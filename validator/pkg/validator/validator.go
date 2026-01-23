@@ -31,7 +31,6 @@ type Status string
 const (
     StatusSuccess Status = "success"
     StatusFailure Status = "failure"
-    StatusSkipped Status = "skipped"
 )
 
 // Result represents the outcome of a single validator

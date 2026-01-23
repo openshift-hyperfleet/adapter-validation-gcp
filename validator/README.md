@@ -50,7 +50,7 @@ docker run --rm \
 
 ### Optional
 - `RESULTS_PATH` - Output file path (default: `/results/adapter-result.json`)
-- `DISABLED_VALIDATORS` - Comma-separated list to disable (e.g., `quota-check`)
+- `DISABLED_VALIDATORS` - Comma-separated list to disable (e.g., `quota-check`). Note: At least one validator must remain enabled.
 - `STOP_ON_FIRST_FAILURE` - Stop on first failure (default: `false`)
 - `REQUIRED_APIS` - APIs to check (default: `compute.googleapis.com,iam.googleapis.com,cloudresourcemanager.googleapis.com`)
 - `LOG_LEVEL` - Log level: `debug`, `info`, `warn`, `error` (default: `info`)
