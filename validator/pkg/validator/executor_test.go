@@ -31,8 +31,9 @@ var _ = Describe("Executor", func() {
 		// Clear the global registry before each test
 		validator.ClearRegistry()
 
-		// Set up minimal config
-		Expect(os.Setenv("PROJECT_ID", "test-project")).To(Succeed())
+		// Set up minimal config with automatic cleanup
+		GinkgoT().Setenv("PROJECT_ID", "test-project")
+
 		cfg, err := config.LoadFromEnv()
 		Expect(err).NotTo(HaveOccurred())
 

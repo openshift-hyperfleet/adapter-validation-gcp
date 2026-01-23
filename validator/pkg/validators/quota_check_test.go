@@ -2,7 +2,6 @@ package validators_test
 
 import (
 	"context"
-	"os"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -21,8 +20,9 @@ var _ = Describe("QuotaCheckValidator", func() {
 	BeforeEach(func() {
 		v = &validators.QuotaCheckValidator{}
 
-		// Set up minimal config
-		Expect(os.Setenv("PROJECT_ID", "test-project")).To(Succeed())
+		// Set up minimal config with automatic cleanup
+		GinkgoT().Setenv("PROJECT_ID", "test-project")
+
 		cfg, err := config.LoadFromEnv()
 		Expect(err).NotTo(HaveOccurred())
 
@@ -30,10 +30,6 @@ var _ = Describe("QuotaCheckValidator", func() {
 			Config:  cfg,
 			Results: make(map[string]*validator.Result),
 		}
-	})
-
-	AfterEach(func() {
-		Expect(os.Unsetenv("PROJECT_ID")).To(Succeed())
 	})
 
 	Describe("Metadata", func() {
@@ -64,14 +60,10 @@ var _ = Describe("QuotaCheckValidator", func() {
 
 		Context("when validator is explicitly disabled", func() {
 			BeforeEach(func() {
-				Expect(os.Setenv("DISABLED_VALIDATORS", "quota-check")).To(Succeed())
+				GinkgoT().Setenv("DISABLED_VALIDATORS", "quota-check")
 				cfg, err := config.LoadFromEnv()
 				Expect(err).NotTo(HaveOccurred())
 				vctx.Config = cfg
-			})
-
-			AfterEach(func() {
-				Expect(os.Unsetenv("DISABLED_VALIDATORS")).To(Succeed())
 			})
 
 			It("should be disabled", func() {

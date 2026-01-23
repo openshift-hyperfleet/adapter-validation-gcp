@@ -1,8 +1,6 @@
 package config_test
 
 import (
-	"os"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -10,39 +8,24 @@ import (
 )
 
 var _ = Describe("Config", func() {
-	var originalEnv map[string]string
-
 	BeforeEach(func() {
-		// Save original environment
-		originalEnv = make(map[string]string)
+		// Clear environment variables - GinkgoT().Setenv automatically restores them
 		envVars := []string{
 			"RESULTS_PATH", "PROJECT_ID", "GCP_REGION",
 			"DISABLED_VALIDATORS", "STOP_ON_FIRST_FAILURE",
 			"REQUIRED_APIS", "LOG_LEVEL",
 			"REQUIRED_VCPUS", "REQUIRED_DISK_GB", "REQUIRED_IP_ADDRESSES",
-			"VPC_NAME", "SUBNET_NAME",
+			"VPC_NAME", "SUBNET_NAME", "MAX_WAIT_TIME_SECONDS",
 		}
-		for _, v := range envVars {
-			originalEnv[v] = os.Getenv(v)
-			Expect(os.Unsetenv(v)).To(Succeed())
-		}
-	})
-
-	AfterEach(func() {
-		// Restore original environment
-		for k, v := range originalEnv {
-			if v != "" {
-				Expect(os.Setenv(k, v)).To(Succeed())
-			} else {
-				Expect(os.Unsetenv(k)).To(Succeed())
-			}
+		for _, key := range envVars {
+			GinkgoT().Setenv(key, "")
 		}
 	})
 
 	Describe("LoadFromEnv", func() {
 		Context("with minimal required configuration", func() {
 			BeforeEach(func() {
-				Expect(os.Setenv("PROJECT_ID", "test-project-123")).To(Succeed())
+				GinkgoT().Setenv("PROJECT_ID", "test-project-123")
 			})
 
 			It("should load config with defaults", func() {
@@ -75,11 +58,11 @@ var _ = Describe("Config", func() {
 
 		Context("with custom configuration", func() {
 			BeforeEach(func() {
-				Expect(os.Setenv("PROJECT_ID", "custom-project")).To(Succeed())
-				Expect(os.Setenv("RESULTS_PATH", "/custom/path/results.json")).To(Succeed())
-				Expect(os.Setenv("GCP_REGION", "us-central1")).To(Succeed())
-				Expect(os.Setenv("LOG_LEVEL", "debug")).To(Succeed())
-				Expect(os.Setenv("STOP_ON_FIRST_FAILURE", "true")).To(Succeed())
+				GinkgoT().Setenv("PROJECT_ID", "custom-project")
+				GinkgoT().Setenv("RESULTS_PATH", "/custom/path/results.json")
+				GinkgoT().Setenv("GCP_REGION", "us-central1")
+				GinkgoT().Setenv("LOG_LEVEL", "debug")
+				GinkgoT().Setenv("STOP_ON_FIRST_FAILURE", "true")
 			})
 
 			It("should load all custom values", func() {
@@ -95,8 +78,8 @@ var _ = Describe("Config", func() {
 
 		Context("with disabled validators", func() {
 			BeforeEach(func() {
-				Expect(os.Setenv("PROJECT_ID", "test-project")).To(Succeed())
-				Expect(os.Setenv("DISABLED_VALIDATORS", "quota-check,network-check")).To(Succeed())
+				GinkgoT().Setenv("PROJECT_ID", "test-project")
+				GinkgoT().Setenv("DISABLED_VALIDATORS", "quota-check,network-check")
 			})
 
 			It("should parse the disabled validators list", func() {
@@ -108,8 +91,8 @@ var _ = Describe("Config", func() {
 
 		Context("with disabled validators containing whitespace", func() {
 			BeforeEach(func() {
-				Expect(os.Setenv("PROJECT_ID", "test-project")).To(Succeed())
-				Expect(os.Setenv("DISABLED_VALIDATORS", " quota-check , network-check ")).To(Succeed())
+				GinkgoT().Setenv("PROJECT_ID", "test-project")
+				GinkgoT().Setenv("DISABLED_VALIDATORS", " quota-check , network-check ")
 			})
 
 			It("should trim whitespace from validator names", func() {
@@ -121,8 +104,8 @@ var _ = Describe("Config", func() {
 
 		Context("with custom required APIs", func() {
 			BeforeEach(func() {
-				Expect(os.Setenv("PROJECT_ID", "test-project")).To(Succeed())
-				Expect(os.Setenv("REQUIRED_APIS", "compute.googleapis.com,storage.googleapis.com")).To(Succeed())
+				GinkgoT().Setenv("PROJECT_ID", "test-project")
+				GinkgoT().Setenv("REQUIRED_APIS", "compute.googleapis.com,storage.googleapis.com")
 			})
 
 			It("should parse the required APIs list", func() {
@@ -134,10 +117,10 @@ var _ = Describe("Config", func() {
 
 		Context("with integer configurations", func() {
 			BeforeEach(func() {
-				Expect(os.Setenv("PROJECT_ID", "test-project")).To(Succeed())
-				Expect(os.Setenv("REQUIRED_VCPUS", "100")).To(Succeed())
-				Expect(os.Setenv("REQUIRED_DISK_GB", "500")).To(Succeed())
-				Expect(os.Setenv("REQUIRED_IP_ADDRESSES", "10")).To(Succeed())
+				GinkgoT().Setenv("PROJECT_ID", "test-project")
+				GinkgoT().Setenv("REQUIRED_VCPUS", "100")
+				GinkgoT().Setenv("REQUIRED_DISK_GB", "500")
+				GinkgoT().Setenv("REQUIRED_IP_ADDRESSES", "10")
 			})
 
 			It("should parse integer values", func() {
@@ -151,8 +134,8 @@ var _ = Describe("Config", func() {
 
 		Context("with invalid integer values", func() {
 			BeforeEach(func() {
-				Expect(os.Setenv("PROJECT_ID", "test-project")).To(Succeed())
-				Expect(os.Setenv("REQUIRED_VCPUS", "not-a-number")).To(Succeed())
+				GinkgoT().Setenv("PROJECT_ID", "test-project")
+				GinkgoT().Setenv("REQUIRED_VCPUS", "not-a-number")
 			})
 
 			It("should use default value for invalid integers", func() {
@@ -164,8 +147,8 @@ var _ = Describe("Config", func() {
 
 		Context("with invalid boolean values", func() {
 			BeforeEach(func() {
-				Expect(os.Setenv("PROJECT_ID", "test-project")).To(Succeed())
-				Expect(os.Setenv("STOP_ON_FIRST_FAILURE", "not-a-bool")).To(Succeed())
+				GinkgoT().Setenv("PROJECT_ID", "test-project")
+				GinkgoT().Setenv("STOP_ON_FIRST_FAILURE", "not-a-bool")
 			})
 
 			It("should use default value for invalid booleans", func() {
@@ -177,9 +160,9 @@ var _ = Describe("Config", func() {
 
 		Context("with network validator config", func() {
 			BeforeEach(func() {
-				Expect(os.Setenv("PROJECT_ID", "test-project")).To(Succeed())
-				Expect(os.Setenv("VPC_NAME", "my-vpc")).To(Succeed())
-				Expect(os.Setenv("SUBNET_NAME", "my-subnet")).To(Succeed())
+				GinkgoT().Setenv("PROJECT_ID", "test-project")
+				GinkgoT().Setenv("VPC_NAME", "my-vpc")
+				GinkgoT().Setenv("SUBNET_NAME", "my-subnet")
 			})
 
 			It("should load network configuration", func() {
@@ -195,7 +178,7 @@ var _ = Describe("Config", func() {
 		var cfg *config.Config
 
 		BeforeEach(func() {
-			Expect(os.Setenv("PROJECT_ID", "test-project")).To(Succeed())
+			GinkgoT().Setenv("PROJECT_ID", "test-project")
 		})
 
 		Context("with no disabled list", func() {
@@ -214,7 +197,7 @@ var _ = Describe("Config", func() {
 
 		Context("with disabled validators list", func() {
 			BeforeEach(func() {
-				Expect(os.Setenv("DISABLED_VALIDATORS", "quota-check")).To(Succeed())
+				GinkgoT().Setenv("DISABLED_VALIDATORS", "quota-check")
 				var err error
 				cfg, err = config.LoadFromEnv()
 				Expect(err).NotTo(HaveOccurred())
@@ -229,7 +212,7 @@ var _ = Describe("Config", func() {
 
 		Context("with multiple disabled validators", func() {
 			BeforeEach(func() {
-				Expect(os.Setenv("DISABLED_VALIDATORS", "quota-check,network-check")).To(Succeed())
+				GinkgoT().Setenv("DISABLED_VALIDATORS", "quota-check,network-check")
 				var err error
 				cfg, err = config.LoadFromEnv()
 				Expect(err).NotTo(HaveOccurred())

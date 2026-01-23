@@ -15,10 +15,6 @@ import (
 	_ "validator/pkg/validators" // Import to trigger init() registration
 )
 
-const (
-	// Maximum time for all validators to complete
-	validationTimeout = 5 * time.Minute
-)
 
 // main is the entry point for the GCP validator application.
 // It loads configuration, executes all enabled validators, aggregates results,
@@ -42,7 +38,8 @@ func main() {
 	logger.Info("Loaded configuration",
 		"gcp_project", cfg.ProjectID,
 		"results_path", cfg.ResultsPath,
-		"log_level", cfg.LogLevel)
+		"log_level", cfg.LogLevel,
+		"max_wait_time_seconds", cfg.MaxWaitTimeSeconds)
 
 	// Validate disabled validators against registry
 	if len(cfg.DisabledValidators) > 0 {
@@ -63,6 +60,7 @@ func main() {
 	}
 
 	// Create context with timeout (max time for all validators)
+	validationTimeout := time.Duration(cfg.MaxWaitTimeSeconds) * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), validationTimeout)
 	defer cancel()
 

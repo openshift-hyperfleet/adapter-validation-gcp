@@ -34,6 +34,9 @@ type Config struct {
 
 	// Logging
 	LogLevel string // debug, info, warn, error
+
+	// Timeout
+	MaxWaitTimeSeconds int // Default: 300 (5 minutes), maximum time for all validators to complete
 }
 
 // LoadFromEnv loads configuration from environment variables
@@ -49,6 +52,7 @@ func LoadFromEnv() (*Config, error) {
 		RequiredIPAddresses: getEnvInt("REQUIRED_IP_ADDRESSES", 0),
 		VPCName:             getEnv("VPC_NAME", ""),
 		SubnetName:          getEnv("SUBNET_NAME", ""),
+		MaxWaitTimeSeconds:  getEnvInt("MAX_WAIT_TIME_SECONDS", 300),
 	}
 
 	// Parse disabled validators

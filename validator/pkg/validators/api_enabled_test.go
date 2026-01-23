@@ -1,8 +1,6 @@
 package validators_test
 
 import (
-	"os"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -20,8 +18,10 @@ var _ = Describe("APIEnabledValidator", func() {
 	BeforeEach(func() {
 		v = &validators.APIEnabledValidator{}
 
-		// Set up minimal config
-		Expect(os.Setenv("PROJECT_ID", "test-project")).To(Succeed())
+		// Set up minimal config with automatic cleanup
+		GinkgoT().Setenv("PROJECT_ID", "test-project")
+		GinkgoT().Setenv("REQUIRED_APIS", "")
+
 		cfg, err := config.LoadFromEnv()
 		Expect(err).NotTo(HaveOccurred())
 
@@ -29,11 +29,6 @@ var _ = Describe("APIEnabledValidator", func() {
 			Config:  cfg,
 			Results: make(map[string]*validator.Result),
 		}
-	})
-
-	AfterEach(func() {
-		Expect(os.Unsetenv("PROJECT_ID")).To(Succeed())
-		Expect(os.Unsetenv("REQUIRED_APIS")).To(Succeed())
 	})
 
 	Describe("Metadata", func() {
@@ -62,14 +57,10 @@ var _ = Describe("APIEnabledValidator", func() {
 
 		Context("when validator is explicitly disabled", func() {
 			BeforeEach(func() {
-				Expect(os.Setenv("DISABLED_VALIDATORS", "api-enabled")).To(Succeed())
+				GinkgoT().Setenv("DISABLED_VALIDATORS", "api-enabled")
 				cfg, err := config.LoadFromEnv()
 				Expect(err).NotTo(HaveOccurred())
 				vctx.Config = cfg
-			})
-
-			AfterEach(func() {
-				Expect(os.Unsetenv("DISABLED_VALIDATORS")).To(Succeed())
 			})
 
 			It("should be disabled", func() {
@@ -91,7 +82,7 @@ var _ = Describe("APIEnabledValidator", func() {
 
 		Context("with custom required APIs", func() {
 			BeforeEach(func() {
-				Expect(os.Setenv("REQUIRED_APIS", "storage.googleapis.com,bigquery.googleapis.com")).To(Succeed())
+				GinkgoT().Setenv("REQUIRED_APIS", "storage.googleapis.com,bigquery.googleapis.com")
 				cfg, err := config.LoadFromEnv()
 				Expect(err).NotTo(HaveOccurred())
 				vctx.Config = cfg
@@ -107,7 +98,7 @@ var _ = Describe("APIEnabledValidator", func() {
 
 		Context("with APIs containing whitespace", func() {
 			BeforeEach(func() {
-				Expect(os.Setenv("REQUIRED_APIS", " storage.googleapis.com , bigquery.googleapis.com ")).To(Succeed())
+				GinkgoT().Setenv("REQUIRED_APIS", " storage.googleapis.com , bigquery.googleapis.com ")
 				cfg, err := config.LoadFromEnv()
 				Expect(err).NotTo(HaveOccurred())
 				vctx.Config = cfg
@@ -129,7 +120,7 @@ var _ = Describe("APIEnabledValidator", func() {
 
 		Context("with different project ID", func() {
 			BeforeEach(func() {
-				Expect(os.Setenv("PROJECT_ID", "production-project-456")).To(Succeed())
+				GinkgoT().Setenv("PROJECT_ID", "production-project-456")
 				cfg, err := config.LoadFromEnv()
 				Expect(err).NotTo(HaveOccurred())
 				vctx.Config = cfg
