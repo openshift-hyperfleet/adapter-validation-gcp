@@ -42,7 +42,7 @@ spec:
             - name: DISABLED_VALIDATORS
               value: "{{ .disabledValidators }}"
             - name: STOP_ON_FIRST_FAILURE
-              value: "false"
+              value: "{{ .stopOnFirstFailure }}"
 
             # API Validator config
             - name: REQUIRED_APIS

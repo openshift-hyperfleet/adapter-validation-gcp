@@ -96,6 +96,10 @@ validation:
     # Log level for validation containers (sets VALIDATOR_LOG_LEVEL env var)
     # Options: debug, info, warn, error
     logLevel: "info"
+    # Stop validation execution on first failure (default: false)
+    # When true: stops immediately after any validator fails (fail-fast)
+    # When false: continues executing all validators even after failures (collect all results)
+    stopOnFirstFailure: false
 
 # Additional environment variables
 env: []

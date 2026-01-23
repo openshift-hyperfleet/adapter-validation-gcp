@@ -283,6 +283,7 @@ When `rbac.create=true`, the adapter gets **minimal permissions** needed for val
 | `validation.real.disabledValidators` | Comma-separated list of validators to disable | `"quota-check"` |
 | `validation.real.requiredApis` | Comma-separated list of required GCP APIs to validate | `"compute.googleapis.com,iam.googleapis.com,cloudresourcemanager.googleapis.com"` |
 | `validation.real.logLevel` | Log level for validation containers (debug, info, warn, error) | `"info"` |
+| `validation.real.stopOnFirstFailure` | Stop execution on first failure. `true` = fail-fast, `false` = collect all results | `false` |
 
 ### Environment Variables
 
@@ -439,6 +440,7 @@ validation:
     disabledValidators: "quota-check"
     requiredApis: "compute.googleapis.com,iam.googleapis.com,cloudresourcemanager.googleapis.com"
     logLevel: "info"
+    stopOnFirstFailure: false  # true = fail-fast, false = collect all results
 ```
 
 </details>
@@ -470,6 +472,7 @@ The deployment sets these environment variables automatically:
 | `DISABLED_VALIDATORS` | From `validation.real.disabledValidators` | When `validation.useDummy=false` |
 | `REQUIRED_APIS` | From `validation.real.requiredApis` | When `validation.useDummy=false` |
 | `VALIDATOR_LOG_LEVEL` | From `validation.real.logLevel` | When `validation.useDummy=false` |
+| `STOP_ON_FIRST_FAILURE` | From `validation.real.stopOnFirstFailure` | When `validation.useDummy=false` |
 
 ## License
 

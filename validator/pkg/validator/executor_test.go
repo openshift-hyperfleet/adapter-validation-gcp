@@ -209,6 +209,57 @@ var _ = Describe("Executor", func() {
 				Expect(executionOrder[0]).To(Equal("validator-a"))
 				Expect(executionOrder[1:]).To(ConsistOf("validator-b", "validator-c"))
 			})
+
+		It("should handle out-of-order registration (dependencies registered before dependents)", func() {
+			// Clear previous validators and reset execution order
+			validator.ClearRegistry()
+			executionOrder = []string{}
+
+			// Register in reverse order: dependents (b, c) before dependency (a)
+			// This tests that the resolver can handle forward references
+			for _, name := range []string{"validator-b", "validator-c"} {
+				n := name
+				validator.Register(&MockValidator{
+					name:     n,
+					runAfter: []string{"validator-a"}, // depends on validator-a which isn't registered yet
+					enabled:  true,
+					validateFunc: func(ctx context.Context, vctx *validator.Context) *validator.Result {
+						mu.Lock()
+						executionOrder = append(executionOrder, n)
+						mu.Unlock()
+						return &validator.Result{
+							ValidatorName: n,
+							Status:        validator.StatusSuccess,
+						}
+					},
+				})
+			}
+
+			// Now register validator-a (after its dependents)
+			validator.Register(&MockValidator{
+				name:     "validator-a",
+				runAfter: []string{},
+				enabled:  true,
+				validateFunc: func(ctx context.Context, vctx *validator.Context) *validator.Result {
+					mu.Lock()
+					executionOrder = append(executionOrder, "validator-a")
+					mu.Unlock()
+					return &validator.Result{
+						ValidatorName: "validator-a",
+						Status:        validator.StatusSuccess,
+					}
+				},
+			})
+
+			executor = validator.NewExecutor(vctx, logger)
+			results, err := executor.ExecuteAll(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(results).To(HaveLen(3))
+
+			// Regardless of registration order, validator-a should execute before b and c
+			Expect(executionOrder[0]).To(Equal("validator-a"))
+			Expect(executionOrder[1:]).To(ConsistOf("validator-b", "validator-c"))
+		})
 		})
 
 		Context("with StopOnFirstFailure enabled", func() {

@@ -101,6 +101,8 @@ spec:
               value: {{ .Values.validation.real.requiredApis | quote }}
             - name: VALIDATOR_LOG_LEVEL
               value: {{ .Values.validation.real.logLevel | default "info" | quote }}
+            - name: STOP_ON_FIRST_FAILURE
+              value: {{ .Values.validation.real.stopOnFirstFailure | quote }}
             {{- end }}
           resources:
             limits:
