@@ -3,10 +3,6 @@
 # Only environment-specific settings are exposed here.
 # For advanced customization, modify the templates directly.
 
-# Deployment mode: "dummy" for dummy-gcp-validation, "real" for gcp-validation
-# Currently only "dummy" is supported
-deploymentMode: "dummy"  # "dummy" or "real"
-
 replicaCount: 1
 
 image:
@@ -72,19 +68,38 @@ hyperfleetApi:
   baseUrl: ""
   version: "v1"
 
-# Validation-specific configuration (only for dummy mode)
+# Validation-specific configuration
 validation:
-  # Status reporter image (sidecar container)
-  statusReporterImage: "quay.io/rh-ee-dawang/status-reporter:dev-04e8d0a"
+  # Mode selection: false = real validation (default), true = dummy/test mode
+  useDummy: false
 
-  # Dummy validation simulation settings
+  # Common configuration (used by both modes)
+  statusReporterImage: "registry.ci.openshift.org/ci/status-reporter:latest"
+  resultsPath: "/results/adapter-result.json"
+  maxWaitTimeSeconds: "300"
+
+  # Dummy validation simulation settings (only when useDummy: true)
   dummy:
     # Simulated result: success, failure, hang, crash, invalid-json, missing-status
     simulateResult: "success"
-    # Path where validation results are written
-    resultsPath: "/results/adapter-result.json"
-    # Maximum time to wait for validation completion (seconds)
-    maxWaitTimeSeconds: "300"
+
+  # Real GCP validator settings (only when useDummy: false)
+  real:
+    # GCP validator container image
+    gcpValidatorImage: "registry.ci.openshift.org/ci/gcp-validator:latest"
+    # Comma-separated list of validators to disable (default: all enabled)
+    # Note: quota-check is a stub validator (not yet implemented, returns success)
+    disabledValidators: "quota-check"
+    # Comma-separated list of required GCP APIs to validate (default: empty)
+    # Example: "compute.googleapis.com,storage-api.googleapis.com"
+    requiredApis: "compute.googleapis.com,iam.googleapis.com,cloudresourcemanager.googleapis.com"
+    # Log level for validation containers (sets VALIDATOR_LOG_LEVEL env var)
+    # Options: debug, info, warn, error
+    logLevel: "info"
+    # Stop validation execution on first failure (default: false)
+    # When true: stops immediately after any validator fails (fail-fast)
+    # When false: continues executing all validators even after failures (collect all results)
+    stopOnFirstFailure: false
 
 # Additional environment variables
 env: []

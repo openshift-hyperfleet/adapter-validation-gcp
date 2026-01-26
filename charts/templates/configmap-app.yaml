@@ -7,12 +7,16 @@ metadata:
     app.kubernetes.io/component: adapter
 data:
   # Adapter configuration file
-  # Dynamically loaded based on deploymentMode
-  # Edit charts/configs/validation-dummy-adapter.yaml or validation-gcp-adapter.yaml to customize
+  # Dynamically loaded based on validation.useDummy
+  # Edit charts/configs/validation-dummy-adapter.yaml or validation-adapter.yaml to customize
   adapter.yaml: |
 {{ .Files.Get (printf "configs/%s" (include "validation-gcp.adapterConfigFile" .)) | nindent 4 }}
-  {{- if eq .Values.deploymentMode "dummy" }}
-  # Adapter task template referenced by the adapter config
+  {{- if .Values.validation.useDummy }}
+  # Adapter task template referenced by the adapter config (dummy mode)
   validation-dummy-job-adapter-task.yaml: |
 {{ .Files.Get "configs/validation-dummy-job-adapter-task.yaml" | nindent 4 }}
+  {{- else }}
+  # Adapter task template referenced by the adapter config (real validation)
+  validation-job-adapter-task.yaml: |
+{{ .Files.Get "configs/validation-job-adapter-task.yaml" | nindent 4 }}
   {{- end }}
